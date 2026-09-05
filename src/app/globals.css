@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f4ef;
+  --foreground: #1c2a24;
+  --card: #fffcf7;
+  --card-foreground: #1c2a24;
+  --primary: #1f4d3a;
+  --primary-foreground: #f4faf6;
+  --secondary: #e4ebe4;
+  --secondary-foreground: #1c2a24;
+  --muted: #ebe6de;
+  --muted-foreground: #5c6b63;
+  --accent: #e8f0ea;
+  --accent-foreground: #1c2a24;
+  --destructive: #b42318;
+  --destructive-foreground: #fff7f6;
+  --border: #d7d0c4;
+  --input: #d7d0c4;
+  --ring: #2f6b52;
+  --visited: #0f7a4c;
+  --visited-hover: #0b5f3b;
+  --highlight: #f0b429;
+  --map-canvas: #dfece4;
+  --map-stroke: #2a3d34;
+  --map-state: #9bb8a8;
+  --map-state-hover: #7fa190;
+  --map-muni: #c5d7cc;
+  --map-muni-hover: #a9c3b4;
+  --page: radial-gradient(circle at top left, #e8f3ec 0%, #f7f4ef 45%, #efe8dc 100%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-visited: var(--visited);
+  --color-visited-hover: var(--visited-hover);
+  --color-highlight: var(--highlight);
+  --color-map-canvas: var(--map-canvas);
+  --color-map-stroke: var(--map-stroke);
+  --color-map-state: var(--map-state);
+  --color-map-state-hover: var(--map-state-hover);
+  --color-map-muni: var(--map-muni);
+  --color-map-muni-hover: var(--map-muni-hover);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-fraunces);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.bg-page {
+  background: var(--page);
+}

@@ -73,6 +73,8 @@ model VisitedMunicipality {
   userId               String
   municipalityIbgeCode String
   visitedAt            DateTime     @default(now())
+  photoPath            String?
+  photoMimeType        String?
   user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   municipality         Municipality @relation(fields: [municipalityIbgeCode], references: [ibgeCode], onDelete: Cascade)
 

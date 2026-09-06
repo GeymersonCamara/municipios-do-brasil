@@ -8,17 +8,19 @@ import { Button } from "@/components/ui/button";
 type MapExplorerProps = {
   scope: MapScope;
   visitedSet: Set<string>;
+  photoSet?: Set<string>;
   highlightCode?: string | null;
   onStateSelect: (stateCode: string) => void;
-  onMunicipalityToggle: (ibgeCode: string) => void;
+  onMunicipalitySelect: (ibgeCode: string, name: string) => void;
 };
 
 export function MapExplorer({
   scope,
   visitedSet,
+  photoSet,
   highlightCode,
   onStateSelect,
-  onMunicipalityToggle,
+  onMunicipalitySelect,
 }: MapExplorerProps) {
   const { data: geo, isLoading, isError, error, refetch, isFetching } =
     useMapGeography(scope);
@@ -49,9 +51,10 @@ export function MapExplorer({
       geography={geo}
       mode={isState ? "municipalities" : "states"}
       visitedSet={visitedSet}
+      photoSet={photoSet}
       highlightCode={highlightCode}
-      onFeatureClick={(id) => {
-        if (isState) onMunicipalityToggle(id);
+      onFeatureClick={(id, name) => {
+        if (isState) onMunicipalitySelect(id, name);
         else onStateSelect(id);
       }}
     />

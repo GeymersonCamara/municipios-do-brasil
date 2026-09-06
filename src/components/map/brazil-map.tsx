@@ -18,12 +18,14 @@ type TooltipState = {
   y: number;
   label: string;
   visited: boolean;
+  hasPhoto: boolean;
 } | null;
 
 type BrazilMapProps = {
   geography: BrazilGeoJSON;
   mode: "states" | "municipalities";
   visitedSet: Set<string>;
+  photoSet?: Set<string>;
   highlightCode?: string | null;
   onFeatureClick: (id: string, name: string) => void;
   className?: string;
@@ -33,6 +35,7 @@ export function BrazilMap({
   geography,
   mode,
   visitedSet,
+  photoSet,
   highlightCode,
   onFeatureClick,
   className,
@@ -151,7 +154,12 @@ export function BrazilMap({
         <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}>
           {geography.features.map((feature, index) => {
             const codigo = String(
-              feature.properties?.codarea ?? feature.id ?? index,
+              mode === "states"
+                ? (feature.properties?.stateCode ??
+                    feature.id ??
+                    feature.properties?.codarea ??
+                    index)
+                : (feature.properties?.codarea ?? feature.id ?? index),
             );
             const name = String(
               feature.properties?.name ??
@@ -160,6 +168,8 @@ export function BrazilMap({
             );
             const visitado =
               mode === "municipalities" ? visitedSet.has(codigo) : false;
+            const hasPhoto =
+              mode === "municipalities" ? Boolean(photoSet?.has(codigo)) : false;
             const highlighted = highlightCode === codigo;
             const d = pathGenerator(feature) ?? undefined;
 
@@ -173,10 +183,12 @@ export function BrazilMap({
                 d={d}
                 tabIndex={0}
                 role="button"
-                aria-label={`${name}${visitado ? ", visitado" : ""}`}
+                aria-label={`${name}${visitado ? ", visitado" : ""}${hasPhoto ? ", com foto" : ""}`}
                 fill={fill}
-                stroke="#1c2a24"
-                strokeWidth={mode === "municipalities" ? 0.7 : 0.5}
+                stroke={hasPhoto ? "#b45309" : "#1c2a24"}
+                strokeWidth={
+                  hasPhoto ? 1.4 : mode === "municipalities" ? 0.7 : 0.5
+                }
                 className="cursor-pointer outline-none transition-[fill] duration-150 hover:fill-[#93c5fd] focus-visible:stroke-2 focus-visible:stroke-[#2f6b52]"
                 onClick={() => {
                   if (dragRef.current?.moved) return;
@@ -196,6 +208,7 @@ export function BrazilMap({
                     y: event.clientY - rect.top,
                     label: name,
                     visited: visitado,
+                    hasPhoto,
                   });
                 }}
                 onMouseMove={(event) => {
@@ -206,6 +219,7 @@ export function BrazilMap({
                     y: event.clientY - rect.top,
                     label: name,
                     visited: visitado,
+                    hasPhoto,
                   });
                 }}
                 onMouseLeave={() => setTooltip(null)}
@@ -226,7 +240,11 @@ export function BrazilMap({
           <span className="font-medium">{tooltip.label}</span>
           {mode === "municipalities" && (
             <span className="ml-2 opacity-80">
-              {tooltip.visited ? "Visitado" : "Não visitado"}
+              {tooltip.visited
+                ? tooltip.hasPhoto
+                  ? "Visitado · com foto"
+                  : "Visitado"
+                : "Não visitado"}
             </span>
           )}
         </div>

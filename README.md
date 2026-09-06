@@ -46,8 +46,8 @@ Acesse [http://localhost:3000](http://localhost:3000).
 
 - Cadastro e login (dados isolados por usuário)
 - Escopo: Brasil · Região · Estado (drill-down no mapa)
-- Clique para marcar/desmarcar município (atualização otimista)
-- Busca com autocomplete e marcação direta
+- Clique para marcar município e anexar uma foto da visita (JPEG/PNG/WebP, até 5 MB)
+- Busca com autocomplete
 - Estatísticas dinâmicas (total, visitados, %, donut + barra)
 
 ## Deploy (Vercel + Neon)

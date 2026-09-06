@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { deletePhotoFile } from "@/lib/photos";
+
+export type VisitedItem = {
+  ibgeCode: string;
+  visitedAt: string;
+  hasPhoto: boolean;
+};
 
 export async function GET() {
   const session = await auth();
@@ -11,11 +18,22 @@ export async function GET() {
 
   const visited = await prisma.visitedMunicipality.findMany({
     where: { userId: session.user.id },
-    select: { municipalityIbgeCode: true, visitedAt: true },
+    select: {
+      municipalityIbgeCode: true,
+      visitedAt: true,
+      photoPath: true,
+    },
   });
 
+  const items: VisitedItem[] = visited.map((v) => ({
+    ibgeCode: v.municipalityIbgeCode,
+    visitedAt: v.visitedAt.toISOString(),
+    hasPhoto: Boolean(v.photoPath),
+  }));
+
   return NextResponse.json({
-    codes: visited.map((v) => v.municipalityIbgeCode),
+    items,
+    codes: items.map((item) => item.ibgeCode),
   });
 }
 
@@ -56,8 +74,13 @@ export async function POST(request: NextRequest) {
   });
 
   if (existing) {
+    await deletePhotoFile(existing.photoPath);
     await prisma.visitedMunicipality.delete({ where: { id: existing.id } });
-    return NextResponse.json({ visited: false, ibgeCode: parsed.data.ibgeCode });
+    return NextResponse.json({
+      visited: false,
+      ibgeCode: parsed.data.ibgeCode,
+      hasPhoto: false,
+    });
   }
 
   await prisma.visitedMunicipality.create({
@@ -67,5 +90,9 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ visited: true, ibgeCode: parsed.data.ibgeCode });
+  return NextResponse.json({
+    visited: true,
+    ibgeCode: parsed.data.ibgeCode,
+    hasPhoto: false,
+  });
 }

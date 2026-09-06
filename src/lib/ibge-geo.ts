@@ -147,11 +147,17 @@ export async function fetchBrazilStatesGeoJSON(): Promise<BrazilGeoJSON> {
 }
 
 export async function fetchStateMunicipalitiesGeoJSON(
-  stateCode: string,
+  stateCodeOrIbgeId: string,
 ): Promise<BrazilGeoJSON> {
+  const normalized = stateCodeOrIbgeId.trim().toUpperCase();
+  const stateCode =
+    STATE_IBGE_IDS[normalized]
+      ? normalized
+      : IBGE_ID_TO_STATE[normalized] ?? "";
   const ufId = STATE_IBGE_IDS[stateCode];
-  if (!ufId) {
-    throw new Error(`UF inválida: ${stateCode}`);
+
+  if (!ufId || !stateCode) {
+    throw new Error(`UF inválida: ${stateCodeOrIbgeId}`);
   }
 
   const geo = await fetchMalhaMunicipios(ufId);

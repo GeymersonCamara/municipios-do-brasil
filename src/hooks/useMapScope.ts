@@ -3,10 +3,18 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   BRAZIL_REGIONS,
+  IBGE_ID_TO_STATE,
+  STATE_IBGE_IDS,
   STATE_NAMES,
   type BrazilRegion,
 } from "@/lib/regions";
 import type { MapScope } from "@/types/map";
+
+function normalizeStateCode(value: string) {
+  const normalized = value.trim().toUpperCase();
+  if (STATE_IBGE_IDS[normalized]) return normalized;
+  return IBGE_ID_TO_STATE[normalized] ?? normalized;
+}
 
 export function useMapScope(initial: MapScope = { level: "brazil" }) {
   const [scope, setScope] = useState<MapScope>(initial);
@@ -23,10 +31,11 @@ export function useMapScope(initial: MapScope = { level: "brazil" }) {
   }, []);
 
   const goState = useCallback((stateCode: string) => {
+    const code = normalizeStateCode(stateCode);
     setScope({
       level: "state",
-      stateCode,
-      stateName: STATE_NAMES[stateCode] ?? stateCode,
+      stateCode: code,
+      stateName: STATE_NAMES[code] ?? code,
     });
     setHighlightCode(null);
   }, []);

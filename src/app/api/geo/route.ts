@@ -4,24 +4,37 @@ import {
   fetchStateMunicipalitiesGeoJSON,
   filterGeoJSONByRegion,
 } from "@/lib/ibge-geo";
-import { BRAZIL_REGIONS, type BrazilRegion } from "@/lib/regions";
+import {
+  BRAZIL_REGIONS,
+  IBGE_ID_TO_STATE,
+  STATE_IBGE_IDS,
+  type BrazilRegion,
+} from "@/lib/regions";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+function normalizeStateCode(value: string) {
+  const normalized = value.trim().toUpperCase();
+  if (STATE_IBGE_IDS[normalized]) return normalized;
+  return IBGE_ID_TO_STATE[normalized] ?? normalized;
+}
+
 export async function GET(request: NextRequest) {
   const level = request.nextUrl.searchParams.get("level") ?? "brazil";
   const region = request.nextUrl.searchParams.get("region");
-  const stateCode = request.nextUrl.searchParams.get("stateCode");
+  const stateCodeParam = request.nextUrl.searchParams.get("stateCode");
 
   try {
     if (level === "state") {
-      if (!stateCode) {
+      if (!stateCodeParam) {
         return NextResponse.json(
           { error: "stateCode é obrigatório" },
           { status: 400 },
         );
       }
+
+      const stateCode = normalizeStateCode(stateCodeParam);
 
       const [geo, municipalities] = await Promise.all([
         fetchStateMunicipalitiesGeoJSON(stateCode),

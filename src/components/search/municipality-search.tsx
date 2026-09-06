@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Search } from "lucide-react";
+import { Camera, Check, Search } from "lucide-react";
 import { useState } from "react";
 import { useMunicipalitySearch } from "@/hooks/useMunicipalitySearch";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,17 @@ import type { MunicipalitySummary } from "@/types/map";
 
 type MunicipalitySearchProps = {
   visitedSet: Set<string>;
+  photoSet?: Set<string>;
   onSelect: (municipality: MunicipalitySummary) => void;
-  onToggleVisited: (ibgeCode: string) => void;
+  onOpenDetails: (municipality: MunicipalitySummary) => void;
+  onToggleVisited: (ibgeCode: string) => void | Promise<void>;
 };
 
 export function MunicipalitySearch({
   visitedSet,
+  photoSet,
   onSelect,
+  onOpenDetails,
   onToggleVisited,
 }: MunicipalitySearchProps) {
   const [query, setQuery] = useState("");
@@ -63,6 +67,7 @@ export function MunicipalitySearch({
           <ul role="listbox">
             {data?.map((item) => {
               const visited = visitedSet.has(item.ibgeCode);
+              const hasPhoto = Boolean(photoSet?.has(item.ibgeCode));
               return (
                 <li
                   key={item.ibgeCode}
@@ -78,13 +83,30 @@ export function MunicipalitySearch({
                       setOpen(false);
                     }}
                   >
-                    <span className="block truncate font-medium">
-                      {item.name}
+                    <span className="flex items-center gap-1 truncate font-medium">
+                      <span className="truncate">{item.name}</span>
+                      {hasPhoto ? (
+                        <Camera className="h-3.5 w-3.5 shrink-0 text-amber-700" />
+                      ) : null}
                     </span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {item.stateName} · {item.regionName}
                     </span>
                   </button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="shrink-0"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      onOpenDetails(item);
+                      setOpen(false);
+                    }}
+                    aria-label="Abrir detalhes e foto"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
                   <Button
                     type="button"
                     size="sm"

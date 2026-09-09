@@ -94,7 +94,7 @@ export function MunicipalityPhotoDialog({
                 <Camera className="h-8 w-8 opacity-60" />
                 <p>
                   {visited
-                    ? "Nenhuma foto ainda. Envie uma imagem JPEG, PNG ou WebP (até 5 MB)."
+                    ? "Nenhuma foto ainda. Envie uma imagem JPEG, PNG ou WebP (até 4 MB)."
                     : "Marque o município como visitado para liberar o envio de foto."}
                 </p>
               </div>

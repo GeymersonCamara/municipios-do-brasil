@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
   const municipalities = await prisma.municipality.findMany({
     where: {
       AND: [
-        q.length >= 2 ? { name: { contains: q } } : {},
+        q.length >= 2
+          ? { name: { contains: q, mode: "insensitive" } }
+          : {},
         stateCode ? { stateCode } : {},
         region ? { regionName: region } : {},
       ],

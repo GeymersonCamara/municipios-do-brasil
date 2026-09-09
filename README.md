@@ -18,7 +18,7 @@ Aplicação web multi-tenant para marcar municípios brasileiros já visitados e
 cp .env.example .env.local
 ```
 
-2. Preencha `DATABASE_URL` (connection string do Neon) e `AUTH_SECRET`:
+2. Preencha `DATABASE_URL` (Neon) e `AUTH_SECRET`:
 
 ```bash
 openssl rand -base64 32
@@ -28,7 +28,7 @@ openssl rand -base64 32
 
 ```bash
 npm install
-npm run db:push
+npm run db:deploy
 npm run db:seed
 ```
 
@@ -46,17 +46,25 @@ Acesse [http://localhost:3000](http://localhost:3000).
 
 - Cadastro e login (dados isolados por usuário)
 - Escopo: Brasil · Região · Estado (drill-down no mapa)
-- Clique para marcar município e anexar uma foto da visita (JPEG/PNG/WebP, até 5 MB)
+- Clique para marcar município e anexar uma foto da visita (JPEG/PNG/WebP, até 4 MB; armazenada no Neon)
 - Busca com autocomplete
 - Estatísticas dinâmicas (total, visitados, %, donut + barra)
 
 ## Deploy (Vercel + Neon)
 
-1. Crie um projeto no Neon e copie a connection string.
-2. Importe o repositório na Vercel.
-3. Configure as variáveis: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`.
-4. Opcional: `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`.
-5. Após o primeiro deploy, rode o seed localmente (ou via `npx tsx prisma/seed.ts`) apontando para o banco de produção.
+1. Crie um projeto no [Neon](https://neon.tech) e copie a connection string (**pooled** + `sslmode=require`).
+2. No GitHub: [GeymersonCamara/municipios-do-brasil](https://github.com/GeymersonCamara/municipios-do-brasil).
+3. Importe o repositório na Vercel.
+4. Configure as variáveis de ambiente:
+   - `DATABASE_URL`
+   - `AUTH_SECRET`
+   - `AUTH_URL` = `https://seu-dominio.vercel.app`
+5. Faça o deploy (o build roda `prisma migrate deploy`).
+6. Depois do primeiro deploy, rode o seed apontando para o Neon:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:seed
+```
 
 ## Paleta do mapa
 

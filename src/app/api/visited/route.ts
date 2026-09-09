@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { deletePhotoFile } from "@/lib/photos";
 
 export type VisitedItem = {
   ibgeCode: string;
@@ -21,14 +20,14 @@ export async function GET() {
     select: {
       municipalityIbgeCode: true,
       visitedAt: true,
-      photoPath: true,
+      photoMimeType: true,
     },
   });
 
   const items: VisitedItem[] = visited.map((v) => ({
     ibgeCode: v.municipalityIbgeCode,
     visitedAt: v.visitedAt.toISOString(),
-    hasPhoto: Boolean(v.photoPath),
+    hasPhoto: Boolean(v.photoMimeType),
   }));
 
   return NextResponse.json({
@@ -74,7 +73,6 @@ export async function POST(request: NextRequest) {
   });
 
   if (existing) {
-    await deletePhotoFile(existing.photoPath);
     await prisma.visitedMunicipality.delete({ where: { id: existing.id } });
     return NextResponse.json({
       visited: false,

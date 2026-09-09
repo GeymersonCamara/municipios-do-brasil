@@ -61,11 +61,20 @@ Acesse [http://localhost:3000](http://localhost:3000).
    - `AUTH_SECRET` = gerado com `openssl rand -base64 32`
    - `AUTH_URL` = `https://seu-dominio.vercel.app`
 5. Faça **Redeploy** (o build falha de propósito se `DATABASE_URL` estiver vazia).
-6. Depois do primeiro deploy, rode o seed apontando para o Neon:
+6. Depois do primeiro deploy, rode o seed (nomes/busca/estatísticas).
+   Opção A — local apontando para o Neon:
 
 ```bash
 DATABASE_URL="postgresql://..." npm run db:seed
 ```
+
+   Opção B — pela API (adicione `SEED_SECRET` nas envs da Vercel):
+
+```bash
+curl -X POST "https://SEU-APP.vercel.app/api/seed" -H "x-seed-secret: SEU_SEED_SECRET"
+```
+
+Mesmo sem seed completo, o mapa busca nomes no IBGE e preenche o banco sob demanda ao abrir cada estado.
 
 ## Paleta do mapa
 

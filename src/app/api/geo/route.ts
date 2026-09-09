@@ -4,13 +4,13 @@ import {
   fetchStateMunicipalitiesGeoJSON,
   filterGeoJSONByRegion,
 } from "@/lib/ibge-geo";
+import { resolveMunicipalityNames } from "@/lib/municipality-names";
 import {
   BRAZIL_REGIONS,
   IBGE_ID_TO_STATE,
   STATE_IBGE_IDS,
   type BrazilRegion,
 } from "@/lib/regions";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -35,14 +35,7 @@ export async function GET(request: NextRequest) {
       }
 
       const stateCode = normalizeStateCode(stateCodeParam);
-
-      const [geo, municipalities] = await Promise.all([
-        fetchStateMunicipalitiesGeoJSON(stateCode),
-        prisma.municipality.findMany({
-          where: { stateCode },
-          select: { ibgeCode: true, name: true },
-        }),
-      ]);
+      const geo = await fetchStateMunicipalitiesGeoJSON(stateCode);
 
       if (geo.features.length < 2) {
         return NextResponse.json(
@@ -54,9 +47,10 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const nameByCode = new Map(
-        municipalities.map((m) => [m.ibgeCode, m.name]),
+      const codes = geo.features.map((feature) =>
+        String(feature.properties?.codarea ?? feature.id ?? ""),
       );
+      const nameByCode = await resolveMunicipalityNames(stateCode, codes);
 
       const enriched = {
         type: "FeatureCollection" as const,

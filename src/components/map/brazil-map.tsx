@@ -14,8 +14,6 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type TooltipState = {
-  x: number;
-  y: number;
   label: string;
   visited: boolean;
   hasPhoto: boolean;
@@ -200,23 +198,15 @@ export function BrazilMap({
                     onFeatureClick(codigo, name);
                   }
                 }}
-                onMouseEnter={(event) => {
-                  const rect = containerRef.current?.getBoundingClientRect();
-                  if (!rect) return;
+                onMouseEnter={() => {
                   setTooltip({
-                    x: event.clientX - rect.left,
-                    y: event.clientY - rect.top,
                     label: name,
                     visited: visitado,
                     hasPhoto,
                   });
                 }}
-                onMouseMove={(event) => {
-                  const rect = containerRef.current?.getBoundingClientRect();
-                  if (!rect) return;
+                onMouseMove={() => {
                   setTooltip({
-                    x: event.clientX - rect.left,
-                    y: event.clientY - rect.top,
                     label: name,
                     visited: visitado,
                     hasPhoto,
@@ -230,22 +220,16 @@ export function BrazilMap({
       </svg>
 
       {tooltip && (
-        <div
-          className="pointer-events-none absolute z-10 max-w-[200px] rounded-md bg-foreground px-2 py-1 text-xs text-background shadow"
-          style={{
-            left: Math.min(tooltip.x + 28, size.width - 200),
-            top: Math.min(tooltip.y + 40, size.height - 48),
-          }}
-        >
-          <span className="font-medium">{tooltip.label}</span>
+        <div className="pointer-events-none absolute top-3 right-3 z-10 max-w-[240px] rounded-md bg-foreground/95 px-3 py-2 text-xs text-background shadow backdrop-blur">
+          <p className="font-medium leading-snug">{tooltip.label}</p>
           {mode === "municipalities" && (
-            <span className="ml-2 opacity-80">
+            <p className="mt-0.5 opacity-80">
               {tooltip.visited
                 ? tooltip.hasPhoto
                   ? "Visitado · com foto"
                   : "Visitado"
                 : "Não visitado"}
-            </span>
+            </p>
           )}
         </div>
       )}

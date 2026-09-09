@@ -231,10 +231,10 @@ export function BrazilMap({
 
       {tooltip && (
         <div
-          className="pointer-events-none absolute z-10 rounded-md bg-foreground px-2 py-1 text-xs text-background shadow"
+          className="pointer-events-none absolute z-10 max-w-[200px] rounded-md bg-foreground px-2 py-1 text-xs text-background shadow"
           style={{
-            left: Math.min(tooltip.x + 12, size.width - 160),
-            top: Math.max(8, tooltip.y - 28),
+            left: Math.min(tooltip.x + 20, size.width - 180),
+            top: Math.min(tooltip.y + 22, size.height - 40),
           }}
         >
           <span className="font-medium">{tooltip.label}</span>

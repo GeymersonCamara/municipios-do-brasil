@@ -55,11 +55,12 @@ Acesse [http://localhost:3000](http://localhost:3000).
 1. Crie um projeto no [Neon](https://neon.tech) e copie a connection string (**pooled** + `sslmode=require`).
 2. No GitHub: [GeymersonCamara/municipios-do-brasil](https://github.com/GeymersonCamara/municipios-do-brasil).
 3. Importe o repositório na Vercel.
-4. Configure as variáveis de ambiente:
-   - `DATABASE_URL`
-   - `AUTH_SECRET`
+4. Configure as variáveis de ambiente em **Settings → Environment Variables**
+   (Production e Preview):
+   - `DATABASE_URL` = connection string **pooled** do Neon (`sslmode=require`)
+   - `AUTH_SECRET` = gerado com `openssl rand -base64 32`
    - `AUTH_URL` = `https://seu-dominio.vercel.app`
-5. Faça o deploy (o build roda `prisma migrate deploy`).
+5. Faça **Redeploy** (o build falha de propósito se `DATABASE_URL` estiver vazia).
 6. Depois do primeiro deploy, rode o seed apontando para o Neon:
 
 ```bash

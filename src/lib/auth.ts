@@ -55,6 +55,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Credentials + JWT: adapter só para OAuth/contas sociais
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
@@ -77,4 +78,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   trustHost: true,
   secret: process.env.AUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production" || process.env.VERCEL
+          ? "__Secure-authjs.session-token"
+          : "authjs.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL),
+      },
+    },
+  },
 });

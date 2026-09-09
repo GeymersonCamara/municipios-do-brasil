@@ -12,9 +12,15 @@ export async function middleware(request: NextRequest) {
   );
   const isAuthPage = authPaths.some((path) => pathname.startsWith(path));
 
+  // Na Vercel (HTTPS) o Auth.js v5 grava `__Secure-authjs.session-token`.
+  // Sem secureCookie=true o getToken procura o cookie errado e parece "deslogado".
+  const secureCookie =
+    request.nextUrl.protocol === "https:" || Boolean(process.env.VERCEL);
+
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET,
+    secureCookie,
   });
 
   if (isProtected && !token) {

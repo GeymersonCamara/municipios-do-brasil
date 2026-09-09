@@ -62,12 +62,12 @@ export function RegisterForm() {
     });
 
     if (signInResult?.error) {
+      setError("Conta criada, mas o login automático falhou. Entre manualmente.");
       router.push("/login");
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    window.location.assign("/dashboard");
   });
 
   return (

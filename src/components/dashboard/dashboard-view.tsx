@@ -7,6 +7,7 @@ import {
   MunicipalityPhotoDialog,
   type PhotoDialogMunicipality,
 } from "@/components/photos/municipality-photo-dialog";
+import { PhotoAlbumCard } from "@/components/photos/photo-album-card";
 import { MunicipalitySearch } from "@/components/search/municipality-search";
 import { StatsPanel } from "@/components/stats/stats-panel";
 import { useMapGeography } from "@/hooks/useMapGeography";
@@ -76,6 +77,7 @@ export function DashboardView() {
           onState={goState}
         />
         <StatsPanel stats={stats} isLoading={statsLoading || visitedLoading} />
+        <PhotoAlbumCard />
         <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
           <p className="font-medium text-foreground">Como usar</p>
           <ul className="mt-2 list-disc space-y-1 pl-4">

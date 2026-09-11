@@ -9,9 +9,11 @@ import {
 } from "@/components/photos/municipality-photo-dialog";
 import { PhotoAlbumCard } from "@/components/photos/photo-album-card";
 import { MunicipalitySearch } from "@/components/search/municipality-search";
+import { RankingPanel } from "@/components/stats/ranking-panel";
 import { StatsPanel } from "@/components/stats/stats-panel";
 import { useMapGeography } from "@/hooks/useMapGeography";
 import { useMapScope } from "@/hooks/useMapScope";
+import { useRanking } from "@/hooks/useRanking";
 import { useStats } from "@/hooks/useStats";
 import { useVisitedMunicipalities } from "@/hooks/useVisitedMunicipalities";
 
@@ -36,6 +38,7 @@ export function DashboardView() {
     isRemovingPhoto,
   } = useVisitedMunicipalities();
   const { data: stats, isLoading: statsLoading } = useStats(scope);
+  const { data: ranking, isLoading: rankingLoading } = useRanking(scope);
   const { data: geo } = useMapGeography(scope);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -68,7 +71,7 @@ export function DashboardView() {
     : false;
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 lg:grid-cols-[320px_1fr]">
+    <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 lg:grid-cols-[280px_1fr_260px]">
       <aside className="space-y-4">
         <ScopeControls
           scope={scope}
@@ -133,6 +136,15 @@ export function DashboardView() {
           />
         </div>
       </section>
+
+      <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+        <RankingPanel
+          brazil={ranking?.brazil}
+          state={ranking?.state}
+          isLoading={rankingLoading}
+          showStateHint={scope.level !== "state"}
+        />
+      </aside>
 
       <MunicipalityPhotoDialog
         open={dialogOpen}

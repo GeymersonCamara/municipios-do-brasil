@@ -85,6 +85,7 @@ export function useVisitedMunicipalities() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["visited"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
+      queryClient.invalidateQueries({ queryKey: ["ranking"] });
     },
   });
 

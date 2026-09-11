@@ -15,7 +15,7 @@ export function isAdminEmail(email?: string | null) {
 
 /**
  * Recursos pagos (Plus) ou privados.
- * Hoje só admins têm acesso; assinantes entram aqui depois.
+ * Hoje so admins tem acesso; assinantes entram aqui depois.
  */
 export function hasPlusAccess(email?: string | null) {
   return isAdminEmail(email);

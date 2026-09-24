@@ -86,6 +86,7 @@ export function useVisitedMunicipalities() {
       queryClient.invalidateQueries({ queryKey: ["visited"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
       queryClient.invalidateQueries({ queryKey: ["ranking"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     },
   });
 
@@ -116,6 +117,7 @@ export function useVisitedMunicipalities() {
     onSuccess: () => {
       toast.success("Foto salva");
       queryClient.invalidateQueries({ queryKey: ["visited"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     },
     onError: (error) => toast.error(error.message),
   });
@@ -134,6 +136,7 @@ export function useVisitedMunicipalities() {
     onSuccess: () => {
       toast.success("Foto removida");
       queryClient.invalidateQueries({ queryKey: ["visited"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     },
     onError: (error) => toast.error(error.message),
   });

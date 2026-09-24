@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   BRAZIL_REGIONS,
   IBGE_ID_TO_STATE,
@@ -16,9 +17,36 @@ function normalizeStateCode(value: string) {
   return IBGE_ID_TO_STATE[normalized] ?? normalized;
 }
 
+function scopeFromStateCode(stateCode: string): MapScope {
+  const code = normalizeStateCode(stateCode);
+  return {
+    level: "state",
+    stateCode: code,
+    stateName: STATE_NAMES[code] ?? code,
+  };
+}
+
 export function useMapScope(initial: MapScope = { level: "brazil" }) {
-  const [scope, setScope] = useState<MapScope>(initial);
-  const [highlightCode, setHighlightCode] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const [scope, setScope] = useState<MapScope>(() => {
+    const state = searchParams.get("state");
+    if (state && STATE_IBGE_IDS[normalizeStateCode(state)]) {
+      return scopeFromStateCode(state);
+    }
+    return initial;
+  });
+  const [highlightCode, setHighlightCode] = useState<string | null>(
+    () => searchParams.get("highlight"),
+  );
+
+  useEffect(() => {
+    const state = searchParams.get("state");
+    const highlight = searchParams.get("highlight");
+    if (state && STATE_IBGE_IDS[normalizeStateCode(state)]) {
+      setScope(scopeFromStateCode(state));
+    }
+    if (highlight) setHighlightCode(highlight);
+  }, [searchParams]);
 
   const goBrazil = useCallback(() => {
     setScope({ level: "brazil" });

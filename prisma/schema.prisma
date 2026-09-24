@@ -81,4 +81,5 @@ model VisitedMunicipality {
   @@unique([userId, municipalityIbgeCode])
   @@index([userId])
   @@index([municipalityIbgeCode])
+  @@index([visitedAt])
 }

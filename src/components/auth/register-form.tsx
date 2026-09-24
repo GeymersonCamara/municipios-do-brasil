@@ -67,7 +67,7 @@ export function RegisterForm() {
       return;
     }
 
-    window.location.assign("/dashboard");
+    window.location.assign("/");
   });
 
   return (

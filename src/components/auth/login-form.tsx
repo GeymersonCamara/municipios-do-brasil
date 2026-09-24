@@ -48,7 +48,7 @@ export function LoginForm() {
     }
 
     // Hard navigation garante que o cookie de sessão seja lido no middleware
-    window.location.assign("/dashboard");
+    window.location.assign("/");
   });
 
   return (
@@ -96,7 +96,7 @@ export function LoginForm() {
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("google", { callbackUrl: "/" })}
             >
               Continuar com Google
             </Button>

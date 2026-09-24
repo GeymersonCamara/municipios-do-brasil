@@ -2,14 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedPaths = ["/dashboard", "/perfil"];
+const protectedPaths = ["/", "/dashboard", "/perfil"];
 const authPaths = ["/login", "/cadastro"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isProtected = protectedPaths.some((path) =>
-    pathname.startsWith(path),
-  );
+  const isProtected =
+    pathname === "/" ||
+    protectedPaths.some(
+      (path) => path !== "/" && pathname.startsWith(path),
+    );
   const isAuthPage = authPaths.some((path) => pathname.startsWith(path));
 
   // Na Vercel (HTTPS) o Auth.js v5 grava `__Secure-authjs.session-token`.
@@ -30,12 +32,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/perfil/:path*", "/login", "/cadastro"],
+  matcher: ["/", "/dashboard/:path*", "/perfil/:path*", "/login", "/cadastro"],
 };

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const protectedPaths = ["/", "/dashboard", "/perfil"];
+const protectedPaths = ["/", "/dashboard", "/perfil", "/prime"];
 const authPaths = ["/login", "/cadastro"];
 
 export async function middleware(request: NextRequest) {
@@ -39,5 +39,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/perfil/:path*", "/login", "/cadastro"],
+  matcher: [
+    "/",
+    "/dashboard/:path*",
+    "/perfil/:path*",
+    "/prime",
+    "/login",
+    "/cadastro",
+  ],
 };

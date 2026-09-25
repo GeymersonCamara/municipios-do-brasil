@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { MapPinned } from "lucide-react";
+import { BecomePrimeButton } from "@/components/prime/become-prime-button";
 import { Button } from "@/components/ui/button";
+import { hasPrimeAccess } from "@/lib/access";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -16,6 +18,7 @@ const links = [
 export function AppHeader() {
   const { data } = useSession();
   const pathname = usePathname();
+  const isPrime = hasPrimeAccess(data?.user?.email);
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
@@ -43,6 +46,20 @@ export function AppHeader() {
               </Link>
             );
           })}
+          {!isPrime && pathname !== "/prime" ? (
+            <BecomePrimeButton size="sm" variant="outline" />
+          ) : null}
+          {isPrime ? (
+            <Link
+              href="/prime"
+              className={cn(
+                "rounded-md px-2 py-1 hover:bg-accent",
+                pathname.startsWith("/prime") && "bg-accent font-medium",
+              )}
+            >
+              Prime
+            </Link>
+          ) : null}
           {data?.user?.name && (
             <span className="hidden text-muted-foreground sm:inline">
               {data.user.name}

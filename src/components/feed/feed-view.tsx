@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Lock, MapPinned } from "lucide-react";
+import { BecomePrimeButton } from "@/components/prime/become-prime-button";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeed, type FeedItem } from "@/hooks/useFeed";
@@ -71,13 +72,19 @@ function FeedCard({
                 draggable={canSeePhotos}
               />
               {!canSeePhotos ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 px-4 text-center text-white">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/45 px-4 text-center text-white">
                   <Lock className="h-5 w-5 opacity-90" aria-hidden />
-                  <p className="text-sm font-semibold">Foto exclusiva Prime</p>
-                  <p className="max-w-[16rem] text-xs text-white/85">
-                    Assine o Visitados Prime para ver as fotos do feed com
-                    nitidez.
-                  </p>
+                  <div>
+                    <p className="text-sm font-semibold">Foto exclusiva Prime</p>
+                    <p className="mx-auto mt-1 max-w-[16rem] text-xs text-white/85">
+                      Assine o Visitados Prime para ver as fotos do feed com
+                      nitidez.
+                    </p>
+                  </div>
+                  <BecomePrimeButton
+                    size="sm"
+                    className="bg-white text-foreground hover:bg-white/90"
+                  />
                 </div>
               ) : null}
             </div>
@@ -124,6 +131,9 @@ export function FeedView() {
             ? " Fotos do feed ficam nítidas no Visitados Prime."
             : null}
         </p>
+        {!canSeePhotos && !isLoading ? (
+          <BecomePrimeButton className="mt-3" size="sm" />
+        ) : null}
       </div>
 
       {isLoading ? (

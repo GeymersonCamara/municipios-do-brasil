@@ -3,6 +3,7 @@
 import { Images } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { BecomePrimeButton } from "@/components/prime/become-prime-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,14 +24,14 @@ type AlbumItem = {
 
 export function PhotoAlbumCard() {
   const { data: session } = useSession();
-  const plus = hasPrimeAccess(session?.user?.email);
+  const prime = hasPrimeAccess(session?.user?.email);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AlbumItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open || !plus) return;
+    if (!open || !prime) return;
 
     let cancelled = false;
     setLoading(true);
@@ -59,7 +60,7 @@ export function PhotoAlbumCard() {
     return () => {
       cancelled = true;
     };
-  }, [open, plus]);
+  }, [open, prime]);
 
   return (
     <>
@@ -76,24 +77,30 @@ export function PhotoAlbumCard() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={plus ? "max-w-3xl" : "max-w-md"}>
+        <DialogContent className={prime ? "max-w-3xl" : "max-w-md"}>
           <DialogHeader>
             <DialogTitle>
-              {plus ? "Meu álbum de fotos" : "Recurso Prime"}
+              {prime ? "Meu álbum de fotos" : "Recurso Prime"}
             </DialogTitle>
             <DialogDescription>
-              {plus
+              {prime
                 ? "Todas as fotos que você salvou nos municípios visitados."
-                : "O álbum de fotos é um recurso Prime e será liberado posteriormente."}
+                : "O álbum de fotos é exclusivo do Visitados Prime."}
             </DialogDescription>
           </DialogHeader>
 
-          {!plus ? (
-            <p className="text-sm text-muted-foreground">
-              Em breve você poderá ver aqui, em um só lugar, todas as fotos dos
-              municípios que visitou. Fique de olho nas novidades do Visitados
-              Prime.
-            </p>
+          {!prime ? (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Com o Prime você vê todas as fotos dos municípios visitados em
+                um só lugar, além das fotos nítidas no feed e dos próximos
+                recursos exclusivos.
+              </p>
+              <BecomePrimeButton
+                className="w-full bg-visited text-white hover:bg-visited-hover"
+                onClick={() => setOpen(false)}
+              />
+            </div>
           ) : loading ? (
             <p className="text-sm text-muted-foreground">Carregando álbum…</p>
           ) : error ? (

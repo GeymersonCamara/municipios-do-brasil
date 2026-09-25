@@ -200,8 +200,8 @@ export function BrazilMap({
     event.currentTarget.setPointerCapture?.(event.pointerId);
     const current = transformRef.current;
     const target = event.target as SVGElement | null;
-    const featureId = target?.getAttribute?.("data-feature-id");
-    const featureName = target?.getAttribute?.("data-feature-name");
+    const featureId = target?.getAttribute?.("data-feature-id") ?? null;
+    const featureName = target?.getAttribute?.("data-feature-name") ?? null;
     suppressClickRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,

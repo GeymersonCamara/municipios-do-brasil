@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/check-database-url.mjs && prisma generate && prisma migrate deploy && next build",
+    "build": "node scripts/check-database-url.mjs && prisma generate && node scripts/migrate-deploy.mjs && next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
+    "db:deploy": "node scripts/migrate-deploy.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },

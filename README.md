@@ -58,6 +58,7 @@ Acesse [http://localhost:3000](http://localhost:3000).
 4. Configure as variáveis de ambiente em **Settings → Environment Variables**
    (Production e Preview):
    - `DATABASE_URL` = connection string **pooled** do Neon (`sslmode=require`)
+   - `DIRECT_URL` (opcional) = connection string **direta** do Neon (sem `-pooler`); se faltar, o build deriva automaticamente
    - `AUTH_SECRET` = gerado com `openssl rand -base64 32`
    - `AUTH_URL` = `https://seu-dominio.vercel.app`
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_test_...` ou `pk_live_...`

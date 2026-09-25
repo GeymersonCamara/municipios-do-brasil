@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasPrimeAccess } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { STATE_IBGE_IDS, STATE_NAMES } from "@/lib/regions";
@@ -76,6 +77,17 @@ export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  if (!hasPrimeAccess(session.user.email)) {
+    return NextResponse.json(
+      {
+        error: "Recurso Prime",
+        code: "PRIME_REQUIRED",
+        message: "O ranking é um recurso exclusivo do Visitados Prime.",
+      },
+      { status: 403 },
+    );
   }
 
   const stateCodeParam = request.nextUrl.searchParams.get("stateCode");

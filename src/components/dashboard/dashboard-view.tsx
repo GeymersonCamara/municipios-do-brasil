@@ -38,7 +38,12 @@ export function DashboardView() {
     isRemovingPhoto,
   } = useVisitedMunicipalities();
   const { data: stats, isLoading: statsLoading } = useStats(scope);
-  const { data: ranking, isLoading: rankingLoading } = useRanking(scope);
+  const {
+    data: ranking,
+    isLoading: rankingLoading,
+    canAccess: canAccessRanking,
+    sessionLoading: rankingSessionLoading,
+  } = useRanking(scope);
   const { data: geo } = useMapGeography(scope);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -141,8 +146,9 @@ export function DashboardView() {
         <RankingPanel
           brazil={ranking?.brazil}
           state={ranking?.state}
-          isLoading={rankingLoading}
+          isLoading={rankingLoading || rankingSessionLoading}
           showStateHint={scope.level !== "state"}
+          canAccess={canAccessRanking}
         />
       </aside>
 

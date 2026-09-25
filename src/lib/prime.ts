@@ -12,6 +12,11 @@ export const PRIME_BENEFITS = [
       "Acesse em um só lugar todas as fotos que você salvou nos municípios visitados.",
   },
   {
+    title: "Ranking Top 5",
+    description:
+      "Veja quem mais conheceu o Brasil e cada estado no ranking de viajantes.",
+  },
+  {
     title: "Novidades Prime em primeira mão",
     description:
       "Ferramentas exclusivas que forem lançadas no Visitados entram primeiro para assinantes Prime.",

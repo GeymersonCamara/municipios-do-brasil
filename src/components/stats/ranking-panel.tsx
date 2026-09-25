@@ -1,6 +1,7 @@
 "use client";
 
-import { Trophy } from "lucide-react";
+import { Lock, Trophy } from "lucide-react";
+import { BecomePrimeButton } from "@/components/prime/become-prime-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatPercent } from "@/lib/utils";
@@ -21,9 +22,7 @@ function RankingList({
   emptyHint: string;
 }) {
   if (board.items.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground">{emptyHint}</p>
-    );
+    return <p className="text-xs text-muted-foreground">{emptyHint}</p>;
   }
 
   return (
@@ -73,6 +72,7 @@ type RankingPanelProps = {
   state?: RankingBoard | null;
   isLoading?: boolean;
   showStateHint?: boolean;
+  canAccess?: boolean;
 };
 
 export function RankingPanel({
@@ -80,7 +80,37 @@ export function RankingPanel({
   state,
   isLoading,
   showStateHint,
+  canAccess = true,
 }: RankingPanelProps) {
+  if (!canAccess) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Trophy className="h-4 w-4 text-amber-600" />
+            Ranking Top 5
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="font-medium">Recurso Prime</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                O ranking de quem mais conheceu o Brasil e cada estado é
+                exclusivo para assinantes Prime e admins.
+              </p>
+            </div>
+          </div>
+          <BecomePrimeButton
+            className="w-full bg-visited text-white hover:bg-visited-hover"
+            size="sm"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (isLoading || !brazil) {
     return (
       <Card>

@@ -9,13 +9,14 @@ import {
   Images,
   MapPinned,
   Sparkles,
+  Trophy,
 } from "lucide-react";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import { hasPrimeAccess } from "@/lib/access";
 import { PRIME_BENEFITS } from "@/lib/prime";
 
-const icons = [Camera, Images, Sparkles, MapPinned] as const;
+const icons = [Camera, Images, Trophy, Sparkles, MapPinned] as const;
 
 export function PrimePageView() {
   const { data: session } = useSession();

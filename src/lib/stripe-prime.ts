@@ -17,7 +17,8 @@ export async function syncPrimeSubscription(params: {
   subscription: Stripe.Subscription;
 }) {
   const { subscription } = params;
-  let userId = params.userId ?? subscription.metadata?.userId ?? null;
+  let userId: string | null =
+    params.userId ?? subscription.metadata?.userId ?? null;
 
   if (!userId && params.customerId) {
     const byCustomer = await prisma.user.findFirst({

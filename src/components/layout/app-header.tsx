@@ -6,7 +6,6 @@ import { signOut, useSession } from "next-auth/react";
 import { MapPinned } from "lucide-react";
 import { BecomePrimeButton } from "@/components/prime/become-prime-button";
 import { Button } from "@/components/ui/button";
-import { hasPrimeAccess } from "@/lib/access";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -18,7 +17,7 @@ const links = [
 export function AppHeader() {
   const { data } = useSession();
   const pathname = usePathname();
-  const isPrime = hasPrimeAccess(data?.user?.email);
+  const isPrime = Boolean(data?.user?.isPrime);
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">

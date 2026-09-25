@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { hasPrimeAccess } from "@/lib/access";
 import type { MapScope } from "@/types/map";
 
 export type RankingEntry = {
@@ -28,7 +27,7 @@ export type RankingPayload = {
 
 export function useRanking(scope: MapScope) {
   const { data: session, status } = useSession();
-  const canAccess = hasPrimeAccess(session?.user?.email);
+  const canAccess = Boolean(session?.user?.isPrime);
   const stateCode = scope.level === "state" ? scope.stateCode : null;
 
   const query = useQuery({

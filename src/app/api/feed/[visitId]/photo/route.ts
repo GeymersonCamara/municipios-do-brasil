@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasPrimeAccess } from "@/lib/access";
+import { getPrimeAccessForUserId } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -32,7 +32,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   }
 
   const bytes = Buffer.from(visit.photoData);
-  const prime = hasPrimeAccess(session.user.email);
+  const prime = await getPrimeAccessForUserId(session.user.id);
 
   return new NextResponse(bytes, {
     headers: {

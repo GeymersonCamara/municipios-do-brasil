@@ -60,8 +60,16 @@ Acesse [http://localhost:3000](http://localhost:3000).
    - `DATABASE_URL` = connection string **pooled** do Neon (`sslmode=require`)
    - `AUTH_SECRET` = gerado com `openssl rand -base64 32`
    - `AUTH_URL` = `https://seu-dominio.vercel.app`
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_test_...` ou `pk_live_...`
+   - `STRIPE_SECRET_KEY` = `sk_test_...` ou `sk_live_...`
+   - `STRIPE_PRICE_ID` = `price_...` (preço do produto Visitados Prime)
+   - `STRIPE_WEBHOOK_SECRET` = `whsec_...` (endpoint `/api/stripe/webhook`)
 5. Faça **Redeploy** (o build falha de propósito se `DATABASE_URL` estiver vazia).
-6. Depois do primeiro deploy, rode o seed (nomes/busca/estatísticas).
+6. No Stripe Dashboard → **Developers → Webhooks**, crie um endpoint:
+   `https://seu-dominio.vercel.app/api/stripe/webhook`
+   com eventos: `checkout.session.completed`, `customer.subscription.created`,
+   `customer.subscription.updated`, `customer.subscription.deleted`.
+7. Depois do primeiro deploy, rode o seed (nomes/busca/estatísticas).
    Opção A — local apontando para o Neon:
 
 ```bash

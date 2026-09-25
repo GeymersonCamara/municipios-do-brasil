@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { hasPrimeAccess } from "@/lib/access";
 
 type AlbumItem = {
   ibgeCode: string;
@@ -24,7 +23,7 @@ type AlbumItem = {
 
 export function PhotoAlbumCard() {
   const { data: session } = useSession();
-  const prime = hasPrimeAccess(session?.user?.email);
+  const prime = Boolean(session?.user?.isPrime);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AlbumItem[]>([]);
   const [loading, setLoading] = useState(false);

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Camera,
   Check,
@@ -11,16 +13,62 @@ import {
   Sparkles,
   Trophy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
-import { hasPrimeAccess } from "@/lib/access";
 import { PRIME_BENEFITS } from "@/lib/prime";
 
 const icons = [Camera, Images, Trophy, Sparkles, MapPinned] as const;
 
 export function PrimePageView() {
-  const { data: session } = useSession();
-  const isPrime = hasPrimeAccess(session?.user?.email);
+  const { data: session, update } = useSession();
+  const searchParams = useSearchParams();
+  const isPrime = Boolean(session?.user?.isPrime);
+  const [busy, setBusy] = useState<"checkout" | "portal" | null>(null);
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const canceled = searchParams.get("canceled");
+    if (success === "1") {
+      toast.success("Pagamento iniciado. Seu Prime será liberado em instantes.");
+      void update();
+    }
+    if (canceled === "1") {
+      toast.message("Checkout cancelado. Você pode tentar de novo quando quiser.");
+    }
+  }, [searchParams, update]);
+
+  async function startCheckout() {
+    setBusy("checkout");
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error ?? "Não foi possível iniciar o pagamento");
+      }
+      if (!data.url) throw new Error("URL de checkout ausente");
+      window.location.assign(data.url);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro no checkout");
+      setBusy(null);
+    }
+  }
+
+  async function openPortal() {
+    setBusy("portal");
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error ?? "Não foi possível abrir o portal");
+      }
+      if (!data.url) throw new Error("URL do portal ausente");
+      window.location.assign(data.url);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro no portal");
+      setBusy(null);
+    }
+  }
 
   return (
     <>
@@ -47,23 +95,32 @@ export function PrimePageView() {
 
             <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
               O Prime libera as ferramentas exclusivas do Visitados: fotos
-              nítidas no feed, álbum completo e os próximos recursos pagos que
-              forem chegando. Hoje a assinatura ainda está em preparação —
-              confira o que você terá ao assinar.
+              nítidas no feed, álbum completo, ranking Top 5 e os próximos
+              recursos pagos.
             </p>
 
             {isPrime ? (
               <div className="mt-6 rounded-xl border border-visited/30 bg-visited/10 px-4 py-3 text-sm">
                 <p className="font-medium text-foreground">
-                  Sua conta já tem acesso Prime (admin).
+                  Sua conta tem acesso Prime.
                 </p>
                 <p className="mt-1 text-muted-foreground">
-                  Você já pode usar álbum, fotos do feed e demais recursos
-                  exclusivos.
+                  Álbum, fotos do feed, ranking e demais exclusivos já estão
+                  liberados.
                 </p>
-                <Button asChild variant="outline" className="mt-3">
-                  <Link href="/">Voltar ao feed</Link>
-                </Button>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button asChild variant="outline">
+                    <Link href="/">Voltar ao feed</Link>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy === "portal"}
+                    onClick={() => void openPortal()}
+                  >
+                    {busy === "portal" ? "Abrindo…" : "Gerenciar assinatura"}
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="mt-6 space-y-3">
@@ -71,18 +128,19 @@ export function PrimePageView() {
                   <Button
                     type="button"
                     className="bg-visited text-white hover:bg-visited-hover"
-                    disabled
+                    disabled={busy === "checkout"}
+                    onClick={() => void startCheckout()}
                   >
                     <Crown className="h-4 w-4" aria-hidden />
-                    Assinatura em breve
+                    {busy === "checkout" ? "Redirecionando…" : "Assinar Prime"}
                   </Button>
                   <Button asChild variant="outline">
                     <Link href="/">Continuar no plano gratuito</Link>
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  A cobrança do Prime ainda não está ativa. Quando liberarmos,
-                  você assina por aqui e os recursos são desbloqueados na hora.
+                  O pagamento é processado com segurança pelo Stripe. Após
+                  confirmar, o acesso Prime é liberado automaticamente.
                 </p>
               </div>
             )}
@@ -113,28 +171,18 @@ export function PrimePageView() {
             </section>
 
             <section className="mt-10 rounded-xl border border-dashed bg-muted/40 p-5">
-              <h2 className="font-semibold">Como vai funcionar a assinatura</h2>
+              <h2 className="font-semibold">Como funciona a assinatura</h2>
               <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+                <li>Clique em Assinar Prime e conclua o pagamento no Stripe.</li>
                 <li>
-                  Você escolhe o plano Prime nesta página quando a cobrança
-                  estiver disponível.
+                  O webhook libera o Prime na sua conta assim que a assinatura
+                  fica ativa.
                 </li>
                 <li>
-                  Após confirmar, os recursos exclusivos são liberados na sua
-                  conta automaticamente.
-                </li>
-                <li>
-                  Enquanto isso, o plano gratuito continua com mapa, visitas,
-                  ranking e feed (fotos com blur).
+                  Você pode cancelar ou atualizar o cartão em Gerenciar
+                  assinatura.
                 </li>
               </ol>
-              {!isPrime ? (
-                <p className="mt-5 text-sm font-medium text-foreground">
-                  Use o botão <span className="text-visited">Tornar-se Prime</span>{" "}
-                  nas ferramentas bloqueadas para voltar a esta página quando
-                  quiser revisar os benefícios.
-                </p>
-              ) : null}
             </section>
           </div>
         </div>

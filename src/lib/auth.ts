@@ -5,6 +5,7 @@ import type { Provider } from "next-auth/providers";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { hasPrimeAccess } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 
 const credentialsSchema = z.object({
@@ -54,8 +55,17 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   );
 }
 
+async function resolveIsPrime(userId?: string) {
+  if (!userId) return false;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, primeStatus: true },
+  });
+  if (!user) return false;
+  return hasPrimeAccess(user.email, user.primeStatus);
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Credentials + JWT: adapter só para OAuth/contas sociais
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
@@ -64,14 +74,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
+      if (user) token.id = user.id;
+      if (token.id) {
+        token.isPrime = await resolveIsPrime(token.id as string);
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) {
         session.user.id = token.id as string;
+        session.user.isPrime = Boolean(token.isPrime);
       }
       return session;
     },
@@ -88,7 +100,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         httpOnly: true,
         sameSite: "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL),
+        secure:
+          process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL),
       },
     },
   },

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasPrimeAccess } from "@/lib/access";
+import { getPrimeAccessForUserId } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const canSeePhotos = hasPrimeAccess(session.user.email);
+  const canSeePhotos = await getPrimeAccessForUserId(session.user.id);
 
   const limitParam = Number(
     request.nextUrl.searchParams.get("limit") ?? DEFAULT_LIMIT,

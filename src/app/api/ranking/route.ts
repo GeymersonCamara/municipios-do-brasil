@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hasPrimeAccess } from "@/lib/access";
+import { getPrimeAccessForUserId } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { STATE_IBGE_IDS, STATE_NAMES } from "@/lib/regions";
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  if (!hasPrimeAccess(session.user.email)) {
+  if (!(await getPrimeAccessForUserId(session.user.id))) {
     return NextResponse.json(
       {
         error: "Recurso Prime",

@@ -8,17 +8,25 @@ datasource db {
 }
 
 model User {
-  id            String                @id @default(cuid())
-  name          String
-  email         String                @unique
-  emailVerified DateTime?
-  passwordHash  String?
-  image         String?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  visited       VisitedMunicipality[]
+  id                    String                @id @default(cuid())
+  name                  String
+  email                 String                @unique
+  emailVerified         DateTime?
+  passwordHash          String?
+  image                 String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  stripeCustomerId      String?               @unique
+  stripeSubscriptionId  String?               @unique
+  stripePriceId         String?
+  /// active | trialing | past_due | canceled | unpaid | incomplete | ...
+  primeStatus           String?
+  primeCurrentPeriodEnd DateTime?
+  accounts              Account[]
+  sessions              Session[]
+  visited               VisitedMunicipality[]
+
+  @@index([primeStatus])
 }
 
 model Account {

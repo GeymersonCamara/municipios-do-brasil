@@ -9,6 +9,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type TouchEvent as ReactTouchEvent,
+  type WheelEvent as ReactWheelEvent,
 } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import type { BrazilGeoJSON } from "@/lib/ibge-geo";
@@ -21,6 +22,8 @@ type TooltipState = {
   visited: boolean;
   hasPhoto: boolean;
 } | null;
+
+type ViewTransform = { k: number; x: number; y: number };
 
 type BrazilMapProps = {
   geography: BrazilGeoJSON;
@@ -35,6 +38,30 @@ type BrazilMapProps = {
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 8;
 
+function clampZoom(k: number) {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
+}
+
+function toSvgTransform({ k, x, y }: ViewTransform) {
+  return `translate(${x} ${y}) scale(${k})`;
+}
+
+/** Mantém o ponto (mx, my) fixo ao mudar a escala de k para nextK. */
+function zoomAtPoint(
+  current: ViewTransform,
+  nextK: number,
+  mx: number,
+  my: number,
+): ViewTransform {
+  const k = clampZoom(nextK);
+  const ratio = k / current.k;
+  return {
+    k,
+    x: mx - (mx - current.x) * ratio,
+    y: my - (my - current.y) * ratio,
+  };
+}
+
 export function BrazilMap({
   geography,
   mode,
@@ -45,10 +72,13 @@ export function BrazilMap({
   className,
 }: BrazilMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const layerRef = useRef<SVGGElement>(null);
   const [size, setSize] = useState({ width: 320, height: 360 });
   const [tooltip, setTooltip] = useState<TooltipState>(null);
-  const [transform, setTransform] = useState({ k: 1, x: 0, y: 0 });
-  const transformRef = useRef(transform);
+
+  const transformRef = useRef<ViewTransform>({ k: 1, x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
   const dragRef = useRef<{
     pointerId: number;
     startX: number;
@@ -59,12 +89,34 @@ export function BrazilMap({
   } | null>(null);
   const pinchRef = useRef<{
     startDistance: number;
-    startScale: number;
+    origin: ViewTransform;
+    originMid: { x: number; y: number };
   } | null>(null);
 
-  useEffect(() => {
-    transformRef.current = transform;
-  }, [transform]);
+  const applyTransform = useCallback((next: ViewTransform) => {
+    transformRef.current = next;
+    if (rafRef.current != null) return;
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (layerRef.current) {
+        layerRef.current.setAttribute(
+          "transform",
+          toSvgTransform(transformRef.current),
+        );
+      }
+    });
+  }, []);
+
+  const commitTransform = useCallback((next: ViewTransform) => {
+    transformRef.current = next;
+    if (rafRef.current != null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    if (layerRef.current) {
+      layerRef.current.setAttribute("transform", toSvgTransform(next));
+    }
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -83,8 +135,14 @@ export function BrazilMap({
   }, []);
 
   useEffect(() => {
-    setTransform({ k: 1, x: 0, y: 0 });
-  }, [geography]);
+    commitTransform({ k: 1, x: 0, y: 0 });
+  }, [geography, commitTransform]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const pathGenerator = useMemo(() => {
     const projection = geoMercator().fitExtent(
@@ -97,27 +155,42 @@ export function BrazilMap({
     return geoPath(projection);
   }, [geography, size.height, size.width]);
 
-  const clampZoom = (k: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
+  const pointInSvg = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: size.width / 2, y: size.height / 2 };
+    const rect = svg.getBoundingClientRect();
+    const sx = size.width / Math.max(1, rect.width);
+    const sy = size.height / Math.max(1, rect.height);
+    return {
+      x: (clientX - rect.left) * sx,
+      y: (clientY - rect.top) * sy,
+    };
+  };
 
-  const zoomBy = useCallback((factor: number) => {
-    setTransform((prev) => ({
-      ...prev,
-      k: clampZoom(prev.k * factor),
-    }));
-  }, []);
+  const zoomByAt = useCallback(
+    (factor: number, clientX?: number, clientY?: number) => {
+      const current = transformRef.current;
+      const center =
+        clientX != null && clientY != null
+          ? pointInSvg(clientX, clientY)
+          : { x: size.width / 2, y: size.height / 2 };
+      commitTransform(zoomAtPoint(current, current.k * factor, center.x, center.y));
+    },
+    [commitTransform, size.height, size.width],
+  );
 
   const resetView = useCallback(() => {
-    setTransform({ k: 1, x: 0, y: 0 });
-  }, []);
+    commitTransform({ k: 1, x: 0, y: 0 });
+  }, [commitTransform]);
 
-  const onWheel = useCallback((event: React.WheelEvent) => {
-    event.preventDefault();
-    const delta = event.deltaY > 0 ? 0.9 : 1.1;
-    setTransform((prev) => ({
-      ...prev,
-      k: clampZoom(prev.k * delta),
-    }));
-  }, []);
+  const onWheel = useCallback(
+    (event: ReactWheelEvent<SVGSVGElement>) => {
+      event.preventDefault();
+      const factor = event.deltaY > 0 ? 0.9 : 1.1;
+      zoomByAt(factor, event.clientX, event.clientY);
+    },
+    [zoomByAt],
+  );
 
   const onPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (event.pointerType === "touch" && pinchRef.current) return;
@@ -139,11 +212,17 @@ export function BrazilMap({
     event.preventDefault();
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
-    setTransform({
+    if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+
+    const svg = svgRef.current;
+    const rect = svg?.getBoundingClientRect();
+    const sx = rect ? size.width / Math.max(1, rect.width) : 1;
+    const sy = rect ? size.height / Math.max(1, rect.height) : 1;
+
+    applyTransform({
       k: transformRef.current.k,
-      x: drag.originX + dx,
-      y: drag.originY + dy,
+      x: drag.originX + dx * sx,
+      y: drag.originY + dy * sy,
     });
   };
 
@@ -155,6 +234,13 @@ export function BrazilMap({
     ) {
       return;
     }
+    // Flush última posição
+    if (layerRef.current) {
+      layerRef.current.setAttribute(
+        "transform",
+        toSvgTransform(transformRef.current),
+      );
+    }
     dragRef.current = null;
   };
 
@@ -162,18 +248,27 @@ export function BrazilMap({
     if (touches.length < 2) return 0;
     const a = touches[0];
     const b = touches[1];
-    const dx = a.clientX - b.clientX;
-    const dy = a.clientY - b.clientY;
-    return Math.hypot(dx, dy);
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  };
+
+  const touchMidpoint = (touches: ReactTouchEvent["touches"]) => {
+    const a = touches[0];
+    const b = touches[1];
+    return {
+      clientX: (a.clientX + b.clientX) / 2,
+      clientY: (a.clientY + b.clientY) / 2,
+    };
   };
 
   const onTouchStart = (event: ReactTouchEvent<SVGSVGElement>) => {
     if (event.touches.length === 2) {
       event.preventDefault();
       dragRef.current = null;
+      const mid = touchMidpoint(event.touches);
       pinchRef.current = {
         startDistance: touchDistance(event.touches),
-        startScale: transformRef.current.k,
+        origin: { ...transformRef.current },
+        originMid: pointInSvg(mid.clientX, mid.clientY),
       };
     }
   };
@@ -181,25 +276,39 @@ export function BrazilMap({
   const onTouchMove = (event: ReactTouchEvent<SVGSVGElement>) => {
     if (event.touches.length === 2 && pinchRef.current) {
       event.preventDefault();
+      const pinch = pinchRef.current;
+      if (pinch.startDistance <= 0) return;
       const distance = touchDistance(event.touches);
-      if (pinchRef.current.startDistance <= 0) return;
-      const scale =
-        pinchRef.current.startScale *
-        (distance / pinchRef.current.startDistance);
-      setTransform((prev) => ({
-        ...prev,
-        k: clampZoom(scale),
-      }));
+      const mid = touchMidpoint(event.touches);
+      const currentMid = pointInSvg(mid.clientX, mid.clientY);
+      const nextK = clampZoom(
+        pinch.origin.k * (distance / pinch.startDistance),
+      );
+      const zoomed = zoomAtPoint(
+        pinch.origin,
+        nextK,
+        pinch.originMid.x,
+        pinch.originMid.y,
+      );
+      applyTransform({
+        k: zoomed.k,
+        x: zoomed.x + (currentMid.x - pinch.originMid.x),
+        y: zoomed.y + (currentMid.y - pinch.originMid.y),
+      });
       return;
     }
-    if (dragRef.current) {
-      event.preventDefault();
-    }
+    if (dragRef.current) event.preventDefault();
   };
 
   const onTouchEnd = (event: ReactTouchEvent<SVGSVGElement>) => {
     if (event.touches.length < 2) {
       pinchRef.current = null;
+      if (layerRef.current) {
+        layerRef.current.setAttribute(
+          "transform",
+          toSvgTransform(transformRef.current),
+        );
+      }
     }
   };
 
@@ -212,6 +321,7 @@ export function BrazilMap({
       )}
     >
       <svg
+        ref={svgRef}
         width={size.width}
         height={size.height}
         viewBox={`0 0 ${size.width} ${size.height}`}
@@ -221,7 +331,7 @@ export function BrazilMap({
             ? "Mapa dos estados do Brasil"
             : "Mapa dos municípios"
         }
-        className="absolute inset-0 block h-full w-full max-w-full touch-none cursor-grab active:cursor-grabbing"
+        className="absolute inset-0 block h-full w-full max-w-full cursor-grab touch-none active:cursor-grabbing"
         style={{ touchAction: "none" }}
         onWheel={onWheel}
         onPointerDown={onPointerDown}
@@ -239,9 +349,7 @@ export function BrazilMap({
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchEnd}
       >
-        <g
-          transform={`translate(${transform.x} ${transform.y}) scale(${transform.k})`}
-        >
+        <g ref={layerRef} transform="translate(0 0) scale(1)">
           {geography.features.map((feature, index) => {
             const codigo = String(
               mode === "states"
@@ -319,7 +427,7 @@ export function BrazilMap({
           variant="secondary"
           className="h-9 w-9 shadow"
           aria-label="Aumentar zoom"
-          onClick={() => zoomBy(1.25)}
+          onClick={() => zoomByAt(1.25)}
         >
           <Plus className="h-4 w-4" />
         </Button>
@@ -329,7 +437,7 @@ export function BrazilMap({
           variant="secondary"
           className="h-9 w-9 shadow"
           aria-label="Diminuir zoom"
-          onClick={() => zoomBy(0.8)}
+          onClick={() => zoomByAt(0.8)}
         >
           <Minus className="h-4 w-4" />
         </Button>

@@ -161,7 +161,12 @@ export function DashboardView() {
         onOpenChange={setDialogOpen}
         onMarkVisited={async () => {
           if (!selected || selectedVisited) return;
-          await toggleVisited(selected.ibgeCode);
+          await toggleVisited({
+            ibgeCode: selected.ibgeCode,
+            name: selected.name,
+            stateCode: selected.stateCode,
+            stateName: selected.stateName,
+          });
         }}
         onUnmarkVisited={async () => {
           if (!selected || !selectedVisited) return;
@@ -171,7 +176,12 @@ export function DashboardView() {
         onUpload={async (file) => {
           if (!selected) return;
           if (!visitedSet.has(selected.ibgeCode)) {
-            await toggleVisited(selected.ibgeCode);
+            await toggleVisited({
+              ibgeCode: selected.ibgeCode,
+              name: selected.name,
+              stateCode: selected.stateCode,
+              stateName: selected.stateName,
+            });
           }
           await uploadPhoto(selected.ibgeCode, file);
         }}

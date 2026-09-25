@@ -86,7 +86,10 @@ export function BrazilMap({
     originX: number;
     originY: number;
     moved: boolean;
+    featureId: string | null;
+    featureName: string | null;
   } | null>(null);
+  const suppressClickRef = useRef(false);
   const pinchRef = useRef<{
     startDistance: number;
     origin: ViewTransform;
@@ -196,6 +199,10 @@ export function BrazilMap({
     if (event.pointerType === "touch" && pinchRef.current) return;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     const current = transformRef.current;
+    const target = event.target as SVGElement | null;
+    const featureId = target?.getAttribute?.("data-feature-id");
+    const featureName = target?.getAttribute?.("data-feature-name");
+    suppressClickRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -203,16 +210,28 @@ export function BrazilMap({
       originX: current.x,
       originY: current.y,
       moved: false,
+      featureId,
+      featureName,
     };
   };
 
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
-    event.preventDefault();
+
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+    const distance = Math.abs(dx) + Math.abs(dy);
+
+    // Só começa a arrastar depois do limiar — evita engolir tap/clique
+    if (!drag.moved && distance <= 8) return;
+
+    if (!drag.moved) {
+      drag.moved = true;
+      suppressClickRef.current = true;
+    }
+
+    event.preventDefault();
 
     const svg = svgRef.current;
     const rect = svg?.getBoundingClientRect();
@@ -234,13 +253,20 @@ export function BrazilMap({
     ) {
       return;
     }
-    // Flush última posição
+
+    const drag = dragRef.current;
     if (layerRef.current) {
       layerRef.current.setAttribute(
         "transform",
         toSvgTransform(transformRef.current),
       );
     }
+
+    // Tap/clique: seleciona o município/estado sem depender do evento click
+    if (drag && !drag.moved && drag.featureId) {
+      onFeatureClick(drag.featureId, drag.featureName ?? drag.featureId);
+    }
+
     dragRef.current = null;
   };
 
@@ -297,7 +323,8 @@ export function BrazilMap({
       });
       return;
     }
-    if (dragRef.current) event.preventDefault();
+    // Só bloqueia scroll depois do limiar de arraste
+    if (dragRef.current?.moved) event.preventDefault();
   };
 
   const onTouchEnd = (event: ReactTouchEvent<SVGSVGElement>) => {
@@ -379,6 +406,8 @@ export function BrazilMap({
               <path
                 key={codigo}
                 d={d}
+                data-feature-id={codigo}
+                data-feature-name={name}
                 tabIndex={0}
                 role="button"
                 aria-label={`${name}${visitado ? ", visitado" : ""}${hasPhoto ? ", com foto" : ""}`}
@@ -389,9 +418,14 @@ export function BrazilMap({
                 }
                 vectorEffect="non-scaling-stroke"
                 className="cursor-pointer outline-none transition-[fill] duration-150 hover:fill-[#93c5fd] focus-visible:stroke-2 focus-visible:stroke-[#2f6b52]"
-                onClick={() => {
-                  if (dragRef.current?.moved) return;
-                  onFeatureClick(codigo, name);
+                onClick={(event) => {
+                  // Clique residual do browser — ignora se foi arraste
+                  // ou se o pointerup já tratou a seleção
+                  event.preventDefault();
+                  if (suppressClickRef.current) {
+                    suppressClickRef.current = false;
+                    return;
+                  }
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {

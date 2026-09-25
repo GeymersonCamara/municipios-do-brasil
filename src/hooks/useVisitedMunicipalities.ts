@@ -13,6 +13,13 @@ export type VisitedItem = {
   hasPhoto: boolean;
 };
 
+export type ToggleVisitedInput = {
+  ibgeCode: string;
+  name?: string;
+  stateCode?: string;
+  stateName?: string;
+};
+
 async function fetchVisited(): Promise<VisitedItem[]> {
   const res = await fetch("/api/visited");
   if (!res.ok) throw new Error("Falha ao carregar municípios visitados");
@@ -43,11 +50,13 @@ export function useVisitedMunicipalities() {
   );
 
   const toggle = useMutation({
-    mutationFn: async (ibgeCode: string) => {
+    mutationFn: async (payload: string | ToggleVisitedInput) => {
+      const body =
+        typeof payload === "string" ? { ibgeCode: payload } : payload;
       const res = await fetch("/api/visited", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ibgeCode }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -59,7 +68,8 @@ export function useVisitedMunicipalities() {
         hasPhoto: boolean;
       };
     },
-    onMutate: async (ibgeCode) => {
+    onMutate: async (payload) => {
+      const ibgeCode = typeof payload === "string" ? payload : payload.ibgeCode;
       await queryClient.cancelQueries({ queryKey: ["visited"] });
       const previous = queryClient.getQueryData<VisitedItem[]>(["visited"]) ?? [];
       const exists = previous.some((item) => item.ibgeCode === ibgeCode);
@@ -148,7 +158,8 @@ export function useVisitedMunicipalities() {
     photoSet,
     isLoading: query.isLoading,
     isError: query.isError,
-    toggleVisited: (ibgeCode: string) => toggle.mutateAsync(ibgeCode),
+    toggleVisited: (payload: string | ToggleVisitedInput) =>
+      toggle.mutateAsync(payload),
     isToggling: toggle.isPending,
     uploadPhoto: (ibgeCode: string, file: File) =>
       uploadPhoto.mutateAsync({ ibgeCode, file }),

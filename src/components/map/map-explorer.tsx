@@ -31,7 +31,7 @@ export function MapExplorer({
 
   if (isError || !geo) {
     return (
-      <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+      <div className="flex h-full min-h-[min(58vh,420px)] w-full max-w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-center sm:min-h-[360px]">
         <p className="text-sm text-destructive">
           {error instanceof Error
             ? error.message

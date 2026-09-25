@@ -76,8 +76,8 @@ export function DashboardView() {
     : false;
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[280px_1fr_260px]">
-      <aside className="order-2 space-y-3 sm:space-y-4 lg:order-1">
+    <div className="mx-auto grid max-w-7xl gap-3 overflow-x-hidden px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[280px_1fr_260px]">
+      <aside className="order-2 min-w-0 space-y-3 sm:space-y-4 lg:order-1">
         <ScopeControls
           scope={scope}
           onBrazil={goBrazil}
@@ -96,7 +96,7 @@ export function DashboardView() {
         </div>
       </aside>
 
-      <section className="order-1 flex min-h-[55vh] flex-col gap-3 sm:min-h-[70vh] lg:order-2">
+      <section className="order-1 flex min-w-0 flex-col gap-3 lg:order-2 lg:min-h-[70vh]">
         <MunicipalitySearch
           visitedSet={visitedSet}
           photoSet={photoSet}
@@ -121,7 +121,7 @@ export function DashboardView() {
             await toggleVisited(ibgeCode);
           }}
         />
-        <div className="min-h-[280px] flex-1 sm:min-h-0">
+        <div className="min-w-0 w-full max-w-full lg:min-h-0 lg:flex-1">
           <MapExplorer
             scope={scope}
             visitedSet={visitedSet}
@@ -142,7 +142,7 @@ export function DashboardView() {
         </div>
       </section>
 
-      <aside className="order-3 space-y-4 lg:sticky lg:top-4 lg:self-start">
+      <aside className="order-3 min-w-0 space-y-4 lg:sticky lg:top-4 lg:self-start">
         <RankingPanel
           brazil={ranking?.brazil}
           state={ranking?.state}

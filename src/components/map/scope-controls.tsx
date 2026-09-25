@@ -77,7 +77,7 @@ export function ScopeControls({
           Ir para estado
         </label>
         <select
-          className="h-10 w-full max-w-xs rounded-md border border-input bg-background px-3 text-sm"
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm sm:max-w-xs"
           value={scope.level === "state" ? scope.stateCode : ""}
           onChange={(event) => {
             if (event.target.value) onState(event.target.value);

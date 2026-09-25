@@ -59,8 +59,8 @@ export function BrazilMap({
       const entry = entries[0];
       if (!entry) return;
       setSize({
-        width: Math.max(320, Math.floor(entry.contentRect.width)),
-        height: Math.max(360, Math.floor(entry.contentRect.height)),
+        width: Math.max(280, Math.floor(entry.contentRect.width)),
+        height: Math.max(280, Math.floor(entry.contentRect.height)),
       });
     });
 
@@ -125,7 +125,7 @@ export function BrazilMap({
     <div
       ref={containerRef}
       className={cn(
-        "relative h-full min-h-[360px] w-full overflow-hidden rounded-xl border bg-[#f7f4ef]",
+        "relative h-full min-h-[280px] w-full overflow-hidden rounded-xl border bg-[#f7f4ef] sm:min-h-[360px]",
         className,
       )}
     >
@@ -239,7 +239,8 @@ export function BrazilMap({
         {mode === "municipalities" ? "municípios" : "estados"}
       </div>
       <div className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-background/85 px-2 py-1 text-[11px] text-muted-foreground backdrop-blur">
-        Scroll · arraste
+        <span className="sm:hidden">Arraste · pinça</span>
+        <span className="hidden sm:inline">Scroll · arraste</span>
       </div>
     </div>
   );
@@ -247,7 +248,7 @@ export function BrazilMap({
 
 export function BrazilMapSkeleton() {
   return (
-    <div className="relative flex h-full min-h-[360px] w-full flex-col items-center justify-center gap-3 rounded-xl border bg-[#f7f4ef] p-6">
+    <div className="relative flex h-full min-h-[280px] w-full flex-col items-center justify-center gap-3 rounded-xl border bg-[#f7f4ef] p-4 sm:min-h-[360px] sm:p-6">
       <Skeleton className="h-[70%] w-[80%] rounded-lg" />
       <p className="text-sm text-muted-foreground">Carregando malha do mapa…</p>
     </div>

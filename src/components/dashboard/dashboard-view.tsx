@@ -76,8 +76,8 @@ export function DashboardView() {
     : false;
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 lg:grid-cols-[280px_1fr_260px]">
-      <aside className="space-y-4">
+    <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 lg:grid-cols-[280px_1fr_260px]">
+      <aside className="order-2 space-y-3 sm:space-y-4 lg:order-1">
         <ScopeControls
           scope={scope}
           onBrazil={goBrazil}
@@ -86,7 +86,7 @@ export function DashboardView() {
         />
         <StatsPanel stats={stats} isLoading={statsLoading || visitedLoading} />
         <PhotoAlbumCard />
-        <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+        <div className="hidden rounded-xl border bg-card p-4 text-sm text-muted-foreground sm:block">
           <p className="font-medium text-foreground">Como usar</p>
           <ul className="mt-2 list-disc space-y-1 pl-4">
             <li>No Brasil/região, clique em um estado para entrar.</li>
@@ -96,7 +96,7 @@ export function DashboardView() {
         </div>
       </aside>
 
-      <section className="flex min-h-[70vh] flex-col gap-3">
+      <section className="order-1 flex min-h-[55vh] flex-col gap-3 sm:min-h-[70vh] lg:order-2">
         <MunicipalitySearch
           visitedSet={visitedSet}
           photoSet={photoSet}
@@ -121,7 +121,7 @@ export function DashboardView() {
             await toggleVisited(ibgeCode);
           }}
         />
-        <div className="min-h-0 flex-1">
+        <div className="min-h-[280px] flex-1 sm:min-h-0">
           <MapExplorer
             scope={scope}
             visitedSet={visitedSet}
@@ -142,7 +142,7 @@ export function DashboardView() {
         </div>
       </section>
 
-      <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+      <aside className="order-3 space-y-4 lg:sticky lg:top-4 lg:self-start">
         <RankingPanel
           brazil={ranking?.brazil}
           state={ranking?.state}

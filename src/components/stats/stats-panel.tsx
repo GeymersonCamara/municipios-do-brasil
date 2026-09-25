@@ -40,7 +40,7 @@ export function StatsPanel({ stats, isLoading }: StatsPanelProps) {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-4">
           <div
-            className="relative h-24 w-24 shrink-0"
+            className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24"
             role="img"
             aria-label={`${formatPercent(stats.percent)} visitado`}
           >

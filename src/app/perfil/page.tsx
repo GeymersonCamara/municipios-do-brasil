@@ -17,7 +17,7 @@ export default async function PerfilPage() {
   return (
     <>
       <AppHeader />
-      <main className="flex-1 bg-page px-4 py-8">
+      <main className="flex-1 bg-page px-3 py-6 sm:px-4 sm:py-8">
         <div className="mx-auto max-w-lg">
           <Card>
             <CardHeader>

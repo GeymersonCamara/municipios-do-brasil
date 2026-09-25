@@ -19,6 +19,12 @@ export const metadata: Metadata = {
     "Marque no mapa os municípios brasileiros que você já visitou e acompanhe sua cobertura geográfica.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${dmSans.variable} ${fraunces.variable} h-full`}>
-      <body className="min-h-full flex flex-col font-sans antialiased">
+      <body className="min-h-full flex flex-col overflow-x-hidden font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

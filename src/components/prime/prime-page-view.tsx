@@ -74,8 +74,8 @@ export function PrimePageView() {
     <>
       <AppHeader />
       <main className="flex-1 bg-page">
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
-          <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-10">
+        <div className="mx-auto max-w-3xl px-3 py-6 sm:px-4 sm:py-12">
+          <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-10">
             <div className="flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-full bg-visited/15 text-visited">
                 <Crown className="h-5 w-5" aria-hidden />
@@ -124,17 +124,17 @@ export function PrimePageView() {
               </div>
             ) : (
               <div className="mt-6 space-y-3">
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
-                    className="bg-visited text-white hover:bg-visited-hover"
+                    className="w-full bg-visited text-white hover:bg-visited-hover sm:w-auto"
                     disabled={busy === "checkout"}
                     onClick={() => void startCheckout()}
                   >
                     <Crown className="h-4 w-4" aria-hidden />
                     {busy === "checkout" ? "Redirecionando…" : "Assinar Prime"}
                   </Button>
-                  <Button asChild variant="outline">
+                  <Button asChild variant="outline" className="w-full sm:w-auto">
                     <Link href="/">Continuar no plano gratuito</Link>
                   </Button>
                 </div>

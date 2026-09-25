@@ -36,10 +36,18 @@ export function getAppBaseUrl() {
   return "http://localhost:3000";
 }
 
+export function getStripePublishableKey() {
+  return (
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim() ||
+    process.env.STRIPE_PUBLISHABLE_KEY?.trim() ||
+    ""
+  );
+}
+
 export function isStripeConfigured() {
   return Boolean(
     process.env.STRIPE_SECRET_KEY?.trim() &&
       process.env.STRIPE_PRICE_ID?.trim() &&
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim(),
+      getStripePublishableKey(),
   );
 }

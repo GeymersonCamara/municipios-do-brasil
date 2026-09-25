@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasPrimeAccess } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,7 +12,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const limitParam = Number(request.nextUrl.searchParams.get("limit") ?? DEFAULT_LIMIT);
+  const canSeePhotos = hasPrimeAccess(session.user.email);
+
+  const limitParam = Number(
+    request.nextUrl.searchParams.get("limit") ?? DEFAULT_LIMIT,
+  );
   const limit = Math.min(
     MAX_LIMIT,
     Math.max(1, Number.isFinite(limitParam) ? limitParam : DEFAULT_LIMIT),
@@ -49,6 +54,7 @@ export async function GET(request: NextRequest) {
   const page = hasMore ? visits.slice(0, limit) : visits;
 
   return NextResponse.json({
+    canSeePhotos,
     items: page.map((visit) => {
       const hasPhoto = Boolean(visit.photoMimeType);
       return {
@@ -57,9 +63,7 @@ export async function GET(request: NextRequest) {
         user: visit.user,
         municipality: visit.municipality,
         hasPhoto,
-        photoUrl: hasPhoto
-          ? `/api/feed/${visit.id}/photo`
-          : null,
+        photoUrl: hasPhoto ? `/api/feed/${visit.id}/photo` : null,
         isYou: visit.user.id === session.user.id,
       };
     }),

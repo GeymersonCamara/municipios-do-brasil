@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { hasPrimeAccess } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -6,7 +7,11 @@ type RouteContext = {
   params: Promise<{ visitId: string }>;
 };
 
-/** Qualquer usuário autenticado pode ver fotos que aparecem no feed. */
+/**
+ * Fotos do feed: autenticados recebem a imagem (teaser).
+ * Quem nao tem Prime ve a UI com blur; admins/Prime veem nitido.
+ * Header X-Prime-Access indica se o viewer tem liberacao.
+ */
 export async function GET(_request: NextRequest, context: RouteContext) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -27,12 +32,14 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   }
 
   const bytes = Buffer.from(visit.photoData);
+  const prime = hasPrimeAccess(session.user.email);
 
   return new NextResponse(bytes, {
     headers: {
       "Content-Type": visit.photoMimeType,
       "Cache-Control": "private, max-age=3600",
       "Content-Length": String(bytes.length),
+      "X-Prime-Access": prime ? "1" : "0",
     },
   });
 }

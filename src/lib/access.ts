@@ -1,4 +1,4 @@
-/** E-mails com acesso admin a recursos Plus / privados. */
+/** E-mails com acesso admin a recursos Prime / privados. */
 export const ADMIN_EMAILS = [
   "geymerson.camara2015@gmail.com",
   "raylla.cs@ufrn.edu.br",
@@ -14,9 +14,14 @@ export function isAdminEmail(email?: string | null) {
 }
 
 /**
- * Recursos pagos (Plus) ou privados.
- * Hoje so admins tem acesso; assinantes entram aqui depois.
+ * Visitados Prime (pago) e recursos privados.
+ * Hoje so admins tem acesso; assinantes Prime entram aqui depois.
  */
-export function hasPlusAccess(email?: string | null) {
+export function hasPrimeAccess(email?: string | null) {
   return isAdminEmail(email);
+}
+
+/** @deprecated Use hasPrimeAccess */
+export function hasPlusAccess(email?: string | null) {
+  return hasPrimeAccess(email);
 }

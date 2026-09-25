@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPinned } from "lucide-react";
+import { Lock, MapPinned } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeed, type FeedItem } from "@/hooks/useFeed";
@@ -17,7 +17,13 @@ function initials(name: string) {
     .join("");
 }
 
-function FeedCard({ item }: { item: FeedItem }) {
+function FeedCard({
+  item,
+  canSeePhotos,
+}: {
+  item: FeedItem;
+  canSeePhotos: boolean;
+}) {
   return (
     <article className="rounded-xl border bg-card p-4 shadow-sm">
       <div className="flex items-start gap-3">
@@ -49,14 +55,31 @@ function FeedCard({ item }: { item: FeedItem }) {
           </div>
 
           {item.hasPhoto && item.photoUrl ? (
-            <div className="overflow-hidden rounded-lg border bg-muted/40">
-              {/* dynamic API image */}
+            <div className="relative overflow-hidden rounded-lg border bg-muted/40">
               <img
                 src={item.photoUrl}
-                alt={`Foto de ${item.municipality.name}`}
-                className="max-h-[420px] w-full object-cover"
+                alt={
+                  canSeePhotos
+                    ? `Foto de ${item.municipality.name}`
+                    : "Foto bloqueada para assinantes Prime"
+                }
+                className={cn(
+                  "max-h-[420px] w-full object-cover transition",
+                  !canSeePhotos && "scale-110 blur-2xl",
+                )}
                 loading="lazy"
+                draggable={canSeePhotos}
               />
+              {!canSeePhotos ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 px-4 text-center text-white">
+                  <Lock className="h-5 w-5 opacity-90" aria-hidden />
+                  <p className="text-sm font-semibold">Foto exclusiva Prime</p>
+                  <p className="max-w-[16rem] text-xs text-white/85">
+                    Assine o Visitados Prime para ver as fotos do feed com
+                    nitidez.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -83,16 +106,23 @@ export function FeedView() {
   } = useFeed();
 
   const items = data?.pages.flatMap((page) => page.items) ?? [];
+  const canSeePhotos = data?.pages[0]?.canSeePhotos ?? false;
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-4 px-4 py-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+        <h1
+          className="text-2xl font-semibold tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
           Feed
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Quando alguém marca um município, a postagem aparece aqui
           automaticamente.
+          {!canSeePhotos && !isLoading
+            ? " Fotos do feed ficam nítidas no Visitados Prime."
+            : null}
         </p>
       </div>
 
@@ -121,7 +151,11 @@ export function FeedView() {
         <>
           <div className="space-y-4">
             {items.map((item) => (
-              <FeedCard key={item.id} item={item} />
+              <FeedCard
+                key={item.id}
+                item={item}
+                canSeePhotos={canSeePhotos}
+              />
             ))}
           </div>
           {hasNextPage ? (

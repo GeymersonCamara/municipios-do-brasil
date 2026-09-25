@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { hasPlusAccess } from "@/lib/access";
+import { hasPrimeAccess } from "@/lib/access";
 
 type AlbumItem = {
   ibgeCode: string;
@@ -23,7 +23,7 @@ type AlbumItem = {
 
 export function PhotoAlbumCard() {
   const { data: session } = useSession();
-  const plus = hasPlusAccess(session?.user?.email);
+  const plus = hasPrimeAccess(session?.user?.email);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AlbumItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -79,12 +79,12 @@ export function PhotoAlbumCard() {
         <DialogContent className={plus ? "max-w-3xl" : "max-w-md"}>
           <DialogHeader>
             <DialogTitle>
-              {plus ? "Meu álbum de fotos" : "Recurso Plus"}
+              {plus ? "Meu álbum de fotos" : "Recurso Prime"}
             </DialogTitle>
             <DialogDescription>
               {plus
                 ? "Todas as fotos que você salvou nos municípios visitados."
-                : "O álbum de fotos é um recurso Plus e será liberado posteriormente."}
+                : "O álbum de fotos é um recurso Prime e será liberado posteriormente."}
             </DialogDescription>
           </DialogHeader>
 
@@ -92,7 +92,7 @@ export function PhotoAlbumCard() {
             <p className="text-sm text-muted-foreground">
               Em breve você poderá ver aqui, em um só lugar, todas as fotos dos
               municípios que visitou. Fique de olho nas novidades do Visitados
-              Plus.
+              Prime.
             </p>
           ) : loading ? (
             <p className="text-sm text-muted-foreground">Carregando álbum…</p>

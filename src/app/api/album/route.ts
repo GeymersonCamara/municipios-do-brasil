@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasPlusAccess } from "@/lib/access";
+import { hasPrimeAccess } from "@/lib/access";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -9,13 +9,13 @@ export async function GET() {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  if (!hasPlusAccess(session.user.email)) {
+  if (!hasPrimeAccess(session.user.email)) {
     return NextResponse.json(
       {
-        error: "Recurso Plus",
-        code: "PLUS_REQUIRED",
+        error: "Recurso Prime",
+        code: "PRIME_REQUIRED",
         message:
-          "O álbum de fotos é um recurso Plus e será liberado posteriormente.",
+          "O álbum de fotos é um recurso Prime e será liberado posteriormente.",
       },
       { status: 403 },
     );

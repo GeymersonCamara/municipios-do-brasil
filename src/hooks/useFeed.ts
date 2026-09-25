@@ -18,6 +18,7 @@ export type FeedItem = {
 };
 
 type FeedPage = {
+  canSeePhotos: boolean;
   items: FeedItem[];
   nextCursor: string | null;
 };

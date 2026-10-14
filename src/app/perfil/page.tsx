@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { AppHeader } from "@/components/layout/app-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,12 +33,7 @@ export default async function PerfilPage() {
                 <span className="text-muted-foreground">E-mail:</span>{" "}
                 {session.user.email}
               </p>
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut({ redirectTo: "/login" });
-                }}
-              >
+              <form action="/api/logout" method="post">
                 <Button type="submit" variant="outline">
                   Sair da conta
                 </Button>

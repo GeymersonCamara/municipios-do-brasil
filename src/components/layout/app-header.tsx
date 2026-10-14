@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { MapPinned, Menu, X } from "lucide-react";
 import { BecomePrimeButton } from "@/components/prime/become-prime-button";
@@ -83,14 +83,11 @@ export function AppHeader() {
               {data.user.name}
             </span>
           ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            Sair
-          </Button>
+          <form action="/api/logout" method="post">
+            <Button type="submit" variant="outline" size="sm">
+              Sair
+            </Button>
+          </form>
         </nav>
 
         <Button
@@ -148,14 +145,11 @@ export function AppHeader() {
                 {data.user.name}
               </p>
             ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-1 w-full"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
-              Sair
-            </Button>
+            <form action="/api/logout" method="post" className="mt-1">
+              <Button type="submit" variant="outline" className="w-full">
+                Sair
+              </Button>
+            </form>
           </nav>
         </div>
       ) : null}

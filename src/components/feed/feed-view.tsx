@@ -270,6 +270,62 @@ function FeedCard({
   );
 }
 
+function FeedScrollLoader({
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+}: {
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+}) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const fetchingRef = useRef(false);
+
+  useEffect(() => {
+    fetchingRef.current = isFetchingNextPage;
+  }, [isFetchingNextPage]);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        if (fetchingRef.current) return;
+        fetchingRef.current = true;
+        fetchNextPage();
+      },
+      { rootMargin: "280px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, fetchNextPage]);
+
+  if (!hasNextPage && !isFetchingNextPage) return null;
+
+  return (
+    <div
+      ref={sentinelRef}
+      className="flex justify-center py-6"
+      aria-live="polite"
+    >
+      {isFetchingNextPage ? (
+        <div className="w-full space-y-4">
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <p className="text-center text-sm text-muted-foreground">
+            Carregando mais publicações…
+          </p>
+        </div>
+      ) : (
+        <span className="sr-only">Mais publicações abaixo</span>
+      )}
+    </div>
+  );
+}
+
 export function FeedView() {
   const {
     data,
@@ -336,18 +392,13 @@ export function FeedView() {
               />
             ))}
           </div>
-          {hasNextPage ? (
-            <div className="flex justify-center pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isFetchingNextPage}
-                onClick={() => fetchNextPage()}
-              >
-                {isFetchingNextPage ? "Carregando…" : "Carregar mais"}
-              </Button>
-            </div>
-          ) : null}
+          <FeedScrollLoader
+            hasNextPage={Boolean(hasNextPage)}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={() => {
+              void fetchNextPage();
+            }}
+          />
         </>
       )}
     </div>

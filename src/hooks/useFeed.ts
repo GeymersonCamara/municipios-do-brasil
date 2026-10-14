@@ -30,7 +30,7 @@ export function useFeed() {
     queryKey: ["feed"],
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam }): Promise<FeedPage> => {
-      const params = new URLSearchParams({ limit: "20" });
+      const params = new URLSearchParams({ limit: "5" });
       if (pageParam) params.set("cursor", pageParam);
       const res = await fetch(`/api/feed?${params}`);
       if (!res.ok) throw new Error("Falha ao carregar o feed");

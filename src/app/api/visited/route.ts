@@ -5,9 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { IBGE_ID_TO_STATE, STATE_NAMES, STATE_TO_REGION } from "@/lib/regions";
 
 export type VisitedItem = {
+  id: string;
   ibgeCode: string;
   visitedAt: string;
   hasPhoto: boolean;
+  description: string | null;
 };
 
 export async function GET() {
@@ -19,16 +21,20 @@ export async function GET() {
   const visited = await prisma.visitedMunicipality.findMany({
     where: { userId: session.user.id },
     select: {
+      id: true,
       municipalityIbgeCode: true,
       visitedAt: true,
       photoMimeType: true,
+      description: true,
     },
   });
 
   const items: VisitedItem[] = visited.map((v) => ({
+    id: v.id,
     ibgeCode: v.municipalityIbgeCode,
     visitedAt: v.visitedAt.toISOString(),
     hasPhoto: Boolean(v.photoMimeType),
+    description: v.description,
   }));
 
   return NextResponse.json({

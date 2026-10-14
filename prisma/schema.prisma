@@ -25,6 +25,7 @@ model User {
   accounts              Account[]
   sessions              Session[]
   visited               VisitedMunicipality[]
+  visitComments         VisitComment[]
 
   @@index([primeStatus])
 }
@@ -83,11 +84,31 @@ model VisitedMunicipality {
   visitedAt            DateTime     @default(now())
   photoData            Bytes?
   photoMimeType        String?
+  /// Dicas da viagem: hospedagem, comida, passeios.
+  description          String?      @db.Text
   user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   municipality         Municipality @relation(fields: [municipalityIbgeCode], references: [ibgeCode], onDelete: Cascade)
+  comments             VisitComment[]
 
   @@unique([userId, municipalityIbgeCode])
   @@index([userId])
   @@index([municipalityIbgeCode])
   @@index([visitedAt])
+}
+
+model VisitComment {
+  id        String              @id @default(cuid())
+  visitId   String
+  userId    String
+  parentId  String?
+  body      String              @db.Text
+  createdAt DateTime            @default(now())
+  visit     VisitedMunicipality @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent    VisitComment?       @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   VisitComment[]      @relation("CommentReplies")
+
+  @@index([visitId, createdAt])
+  @@index([parentId])
+  @@index([userId])
 }

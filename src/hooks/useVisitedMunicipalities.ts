@@ -8,9 +8,11 @@ import {
 import { toast } from "sonner";
 
 export type VisitedItem = {
+  id?: string;
   ibgeCode: string;
   visitedAt: string;
   hasPhoto: boolean;
+  description?: string | null;
 };
 
 export type ToggleVisitedInput = {
@@ -32,6 +34,7 @@ async function fetchVisited(): Promise<VisitedItem[]> {
     ibgeCode,
     visitedAt: new Date().toISOString(),
     hasPhoto: false,
+    description: null,
   }));
 }
 
@@ -81,6 +84,7 @@ export function useVisitedMunicipalities() {
               ibgeCode,
               visitedAt: new Date().toISOString(),
               hasPhoto: false,
+              description: null,
             },
           ];
       queryClient.setQueryData(["visited"], next);
@@ -98,6 +102,33 @@ export function useVisitedMunicipalities() {
       queryClient.invalidateQueries({ queryKey: ["ranking"] });
       queryClient.invalidateQueries({ queryKey: ["feed"] });
     },
+  });
+
+  const saveDescription = useMutation({
+    mutationFn: async ({
+      ibgeCode,
+      description,
+    }: {
+      ibgeCode: string;
+      description: string;
+    }) => {
+      const res = await fetch(`/api/visited/${ibgeCode}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Falha ao salvar a descrição");
+      }
+      return res.json() as Promise<{ description: string | null }>;
+    },
+    onSuccess: () => {
+      toast.success("Descrição salva");
+      queryClient.invalidateQueries({ queryKey: ["visited"] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+    },
+    onError: (error) => toast.error(error.message),
   });
 
   const uploadPhoto = useMutation({
@@ -161,6 +192,9 @@ export function useVisitedMunicipalities() {
     toggleVisited: (payload: string | ToggleVisitedInput) =>
       toggle.mutateAsync(payload),
     isToggling: toggle.isPending,
+    saveDescription: (ibgeCode: string, description: string) =>
+      saveDescription.mutateAsync({ ibgeCode, description }),
+    isSavingDescription: saveDescription.isPending,
     uploadPhoto: (ibgeCode: string, file: File) =>
       uploadPhoto.mutateAsync({ ibgeCode, file }),
     isUploadingPhoto: uploadPhoto.isPending,

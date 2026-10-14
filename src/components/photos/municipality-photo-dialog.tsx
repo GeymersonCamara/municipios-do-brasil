@@ -3,6 +3,7 @@
 import { Camera, ImagePlus, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +25,14 @@ type MunicipalityPhotoDialogProps = {
   municipality: PhotoDialogMunicipality | null;
   visited: boolean;
   hasPhoto: boolean;
+  description?: string | null;
   busy?: boolean;
   onOpenChange: (open: boolean) => void;
   onMarkVisited: () => Promise<void> | void;
   onUnmarkVisited: () => Promise<void> | void;
   onUpload: (file: File) => Promise<void> | void;
   onRemovePhoto: () => Promise<void> | void;
+  onSaveDescription?: (description: string) => Promise<void> | void;
 };
 
 export function MunicipalityPhotoDialog({
@@ -37,16 +40,19 @@ export function MunicipalityPhotoDialog({
   municipality,
   visited,
   hasPhoto,
+  description,
   busy,
   onOpenChange,
   onMarkVisited,
   onUnmarkVisited,
   onUpload,
   onRemovePhoto,
+  onSaveDescription,
 }: MunicipalityPhotoDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [photoVersion, setPhotoVersion] = useState(0);
+  const [draft, setDraft] = useState("");
 
   useEffect(() => {
     if (!open || !municipality || !hasPhoto) {
@@ -61,6 +67,10 @@ export function MunicipalityPhotoDialog({
   useEffect(() => {
     if (open) setPhotoVersion((value) => value + 1);
   }, [open, hasPhoto]);
+
+  useEffect(() => {
+    if (open) setDraft(description ?? "");
+  }, [open, description, municipality?.ibgeCode]);
 
   if (!municipality) return null;
 
@@ -114,6 +124,37 @@ export function MunicipalityPhotoDialog({
               setPhotoVersion((value) => value + 1);
             }}
           />
+
+          {visited ? (
+            <div className="space-y-2">
+              <Label htmlFor="visit-description">Descrição da viagem</Label>
+              <textarea
+                id="visit-description"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                maxLength={2000}
+                rows={4}
+                placeholder="Conte como foi a viagem e dê dicas: hospedagem barata, comida, passeios e o que vale a pena."
+                className="flex w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  {draft.trim().length}/2000
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={
+                    busy || draft.trim() === (description ?? "").trim()
+                  }
+                  onClick={() => onSaveDescription?.(draft)}
+                >
+                  Salvar descrição
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>

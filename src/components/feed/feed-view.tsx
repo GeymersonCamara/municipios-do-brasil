@@ -1,11 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { Lock, MapPinned } from "lucide-react";
+import { MapPinned, MoreHorizontal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { BecomePrimeButton } from "@/components/prime/become-prime-button";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useFeed, type FeedItem } from "@/hooks/useFeed";
+import { VisitThread } from "@/components/feed/visit-thread";
+import { useFeed, useFeedPostActions, type FeedItem } from "@/hooks/useFeed";
 import { formatRelativeTime } from "@/lib/format-time";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +28,77 @@ function initials(name: string) {
     .join("");
 }
 
+function PostMenu({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="absolute right-2 top-2">
+      <button
+        type="button"
+        aria-label="Opções da publicação"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <MoreHorizontal className="h-5 w-5" />
+      </button>
+      {open ? (
+        <div
+          role="menu"
+          className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-lg border bg-card py-1 shadow-md"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            className="block w-full px-3 py-2 text-left text-sm hover:bg-accent"
+            onClick={() => {
+              setOpen(false);
+              onEdit();
+            }}
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="block w-full px-3 py-2 text-left text-sm text-destructive hover:bg-accent"
+            onClick={() => {
+              setOpen(false);
+              onDelete();
+            }}
+          >
+            Apagar
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function FeedCard({
   item,
   canSeePhotos,
@@ -25,9 +106,25 @@ function FeedCard({
   item: FeedItem;
   canSeePhotos: boolean;
 }) {
+  const { saveDescription, deletePost, isSaving, isDeleting } =
+    useFeedPostActions();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(item.description ?? "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (!editing) setDraft(item.description ?? "");
+  }, [editing, item.description]);
+
   return (
-    <article className="rounded-xl border bg-card p-4 shadow-sm">
-      <div className="flex items-start gap-3">
+    <article className="relative rounded-xl border bg-card p-4 shadow-sm">
+      {item.isYou ? (
+        <PostMenu
+          onEdit={() => setEditing(true)}
+          onDelete={() => setConfirmDelete(true)}
+        />
+      ) : null}
+      <div className="flex items-start gap-3 pr-8">
         <div
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
@@ -73,21 +170,59 @@ function FeedCard({
               />
               {!canSeePhotos ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/45 px-4 text-center text-white">
-                  <Lock className="h-5 w-5 opacity-90" aria-hidden />
-                  <div>
-                    <p className="text-sm font-semibold">Foto exclusiva Prime</p>
-                    <p className="mx-auto mt-1 max-w-[16rem] text-xs text-white/85">
-                      Assine o Visitados Prime para ver as fotos do feed com
-                      nitidez.
-                    </p>
-                  </div>
+                  <p className="max-w-[18rem] text-sm font-semibold leading-snug">
+                    Foto + roteiro + dicas locais. Tudo com o Prime.
+                  </p>
                   <BecomePrimeButton
+                    label="Assinar Prime"
                     size="sm"
                     className="bg-white text-foreground hover:bg-white/90"
                   />
                 </div>
               ) : null}
             </div>
+          ) : null}
+
+          {editing ? (
+            <form
+              className="space-y-2"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                await saveDescription(item.municipality.ibgeCode, draft);
+                setEditing(false);
+              }}
+            >
+              <label className="text-sm font-medium" htmlFor={`edit-${item.id}`}>
+                Descrição da viagem
+              </label>
+              <textarea
+                id={`edit-${item.id}`}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                maxLength={2000}
+                rows={4}
+                placeholder="Conte como foi a viagem e dê dicas para outros viajantes."
+                className="flex w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isSaving}
+                  onClick={() => setEditing(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" size="sm" disabled={isSaving}>
+                  Salvar
+                </Button>
+              </div>
+            </form>
+          ) : item.description ? (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed">
+              {item.description}
+            </p>
           ) : null}
 
           <Link
@@ -98,6 +233,39 @@ function FeedCard({
           </Link>
         </div>
       </div>
+      <VisitThread visitId={item.id} />
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apagar publicação</DialogTitle>
+            <DialogDescription>
+              A visita a {item.municipality.name} sai do mapa e do feed, junto
+              com a foto, a descrição e os comentários.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={() => setConfirmDelete(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={async () => {
+                await deletePost(item.id);
+                setConfirmDelete(false);
+              }}
+            >
+              Apagar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </article>
   );
 }

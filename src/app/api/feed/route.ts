@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
       id: true,
       visitedAt: true,
       photoMimeType: true,
+      description: true,
       user: {
         select: { id: true, name: true },
       },
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
         municipality: visit.municipality,
         hasPhoto,
         photoUrl: hasPhoto ? `/api/feed/${visit.id}/photo` : null,
+        description: visit.description,
         isYou: visit.user.id === session.user.id,
       };
     }),

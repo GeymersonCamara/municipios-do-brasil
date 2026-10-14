@@ -27,15 +27,18 @@ export function DashboardView() {
     setHighlightCode,
   } = useMapScope();
   const {
+    visitedItems,
     visitedSet,
     photoSet,
     toggleVisited,
     uploadPhoto,
     removePhoto,
+    saveDescription,
     isLoading: visitedLoading,
     isToggling,
     isUploadingPhoto,
     isRemovingPhoto,
+    isSavingDescription,
   } = useVisitedMunicipalities();
   const { data: stats, isLoading: statsLoading } = useStats(scope);
   const {
@@ -67,7 +70,11 @@ export function DashboardView() {
     setDialogOpen(true);
   }
 
-  const busy = isToggling || isUploadingPhoto || isRemovingPhoto;
+  const busy =
+    isToggling || isUploadingPhoto || isRemovingPhoto || isSavingDescription;
+  const selectedItem = selected
+    ? visitedItems.find((item) => item.ibgeCode === selected.ibgeCode)
+    : undefined;
   const selectedVisited = selected
     ? visitedSet.has(selected.ibgeCode)
     : false;
@@ -157,6 +164,7 @@ export function DashboardView() {
         municipality={selected}
         visited={selectedVisited}
         hasPhoto={selectedHasPhoto}
+        description={selectedItem?.description}
         busy={busy}
         onOpenChange={setDialogOpen}
         onMarkVisited={async () => {
@@ -188,6 +196,10 @@ export function DashboardView() {
         onRemovePhoto={async () => {
           if (!selected) return;
           await removePhoto(selected.ibgeCode);
+        }}
+        onSaveDescription={async (description) => {
+          if (!selected) return;
+          await saveDescription(selected.ibgeCode, description);
         }}
       />
     </div>

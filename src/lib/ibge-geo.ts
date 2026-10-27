@@ -8,6 +8,14 @@ import {
 } from "@/lib/regions";
 
 const MALHAS_BASE = "https://servicodados.ibge.gov.br/api/v3/malhas";
+const MALHAS_QUALITY = "qualidade=intermediaria";
+
+/** UFs com um único município (DF = Brasília): a malha tem um polígono só. */
+const SINGLE_MUNICIPALITY_UF_IDS = new Set(["53"]);
+
+export function expectsSingleMunicipality(stateCode: string) {
+  return SINGLE_MUNICIPALITY_UF_IDS.has(STATE_IBGE_IDS[stateCode] ?? "");
+}
 
 export type GeoFeatureProperties = {
   codarea?: string;
@@ -82,7 +90,7 @@ export function rewindGeoJSON(geo: BrazilGeoJSON): BrazilGeoJSON {
 export async function fetchMalhaMunicipios(
   codigoUF: string,
 ): Promise<BrazilGeoJSON> {
-  const url = `${MALHAS_BASE}/estados/${codigoUF}?formato=application/vnd.geo+json&intrarregiao=municipio`;
+  const url = `${MALHAS_BASE}/estados/${codigoUF}?formato=application/vnd.geo+json&intrarregiao=municipio&${MALHAS_QUALITY}`;
   const res = await fetch(url, { cache: "no-store" });
 
   if (!res.ok) {
@@ -97,7 +105,7 @@ export async function fetchMalhaMunicipios(
     throw new Error(`Malha do estado ${codigoUF} veio vazia`);
   }
 
-  if (geojson.features.length === 1) {
+  if (geojson.features.length === 1 && !SINGLE_MUNICIPALITY_UF_IDS.has(codigoUF)) {
     throw new Error(
       `Malha do estado ${codigoUF} retornou apenas 1 polígono (contorno da UF). Verifique intrarregiao=municipio.`,
     );
@@ -107,7 +115,7 @@ export async function fetchMalhaMunicipios(
 }
 
 async function fetchMalhaEstadosBrasil(): Promise<BrazilGeoJSON> {
-  const url = `${MALHAS_BASE}/paises/BR?formato=application/vnd.geo+json&intrarregiao=UF`;
+  const url = `${MALHAS_BASE}/paises/BR?formato=application/vnd.geo+json&intrarregiao=UF&${MALHAS_QUALITY}`;
   const res = await fetch(url, { cache: "no-store" });
 
   if (!res.ok) {

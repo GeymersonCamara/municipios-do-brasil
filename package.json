@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "node scripts/migrate-deploy.mjs",
     "db:seed": "tsx prisma/seed.ts",
+    "geo:build": "tsx scripts/build-geo.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
